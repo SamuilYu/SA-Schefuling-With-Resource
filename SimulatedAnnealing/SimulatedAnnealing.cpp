@@ -1,10 +1,13 @@
 #include <cmath>
 #include "SimulatedAnnealing.h"
+#include "CoolingSchedule/CoolingSchedule.h"
 
-SimulatedAnnealing::SimulatedAnnealing() {
+SimulatedAnnealing::SimulatedAnnealing(CoolingSchedule* schedule) {
     numTemps = 100;
     numIterations = 100;
     initialTemp = 100.0;
+    coolingSchedule = schedule;
+    coolingSchedule -> setInitialTemperature(initialTemp);
     finalTemp = 0.0001;
     isCoolingScheduleLinear = false;
     k = 10;
@@ -42,7 +45,7 @@ double SimulatedAnnealing::Anneal(Solution &solution, Solution &wk1, Solution &w
     double temperature, deltaError;
     int i;
     for (int n = 0; n < numTemps; n++) {
-        temperature = GetTemperature(n);
+        temperature = coolingSchedule->getNextTemperature();
         hasImproved = false;
 
         for (i = 0; i < numIterations; i++) {
@@ -65,14 +68,10 @@ double SimulatedAnnealing::Anneal(Solution &solution, Solution &wk1, Solution &w
 }
 
 bool SimulatedAnnealing::IsAcceptedByMetropolis(double temperature, double deltaError) {
-    if (deltaError =<0) return true;
+    if (deltaError <= 0) return true;
     return Random(0.0, 1.0) < exp(-k * deltaError / temperature);
 }
 
-double SimulatedAnnealing::GetTemperature(int index) {
-    if (isCoolingScheduleLinear) {
-        return initialTemp + index * (finalTemp - initialTemp) / (numTemps - 1);
-    } else {
-        return initialTemp * exp(index * log(finalTemp / initialTemp) / (numTemps - 1));
-    }
+double SimulatedAnnealing::GetTemperature() {
+    return coolingSchedule -> getNextTemperature();
 }

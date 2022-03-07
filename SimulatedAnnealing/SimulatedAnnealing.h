@@ -2,19 +2,19 @@
 #define SA_SCHEFULING_WITH_RESOURCE_SIMULATEDANNEALING_H
 
 #include "./Solution.h"
+#include "CoolingSchedule//CoolingSchedule.h"
 
 class SimulatedAnnealing {
 public:
-    SimulatedAnnealing();
+    SimulatedAnnealing(CoolingSchedule* schedule);
     ~SimulatedAnnealing() = default;
     int numTemps;
     int numIterations;
     double initialTemp;
-    bool isCoolingScheduleLinear;
     int cycles;
     double Start(Solution& solution, Solution& wk1, Solution& wk2, double goal);
 private:
-    double GetTemperature(int index);
+    CoolingSchedule* coolingSchedule;
     bool IsAcceptedByMetropolis(double temperature, double deltaError);
     double Anneal(Solution& solution, Solution& wk1, Solution& wk2, double goal);
     double EstimateK(Solution& solution, int N);
