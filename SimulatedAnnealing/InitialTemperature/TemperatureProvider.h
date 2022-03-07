@@ -6,16 +6,7 @@
 #include "stdexcept"
 
 class TemperatureProvider {
-private:
-    double threshold;
 public:
-    TemperatureProvider(double threshold) {
-        if (threshold > 1.0 || threshold < 0.0) {
-            throw std::logic_error("Illegal threshold for probability");
-        }
-        this->threshold = threshold;
-    }
-
     virtual double getTemperature() = 0;
 };
 
@@ -25,10 +16,9 @@ private:
     int N;
 public:
     StatisticalTemperatureProvider(
-            double threshold,
             Solution* solution,
             int n
-    ) : TemperatureProvider(threshold) {
+    ) {
         this->solution = solution;
         this->N = n;
     }
@@ -44,7 +34,7 @@ public:
             sums += (E * E);
         }
         double variance = sums / (N - 1) - (sum * sum) / (N * (N - 1));
-        return -sqrt(variance) / (log(threshold) * seed);
+        return -sqrt(variance) / seed;
     }
 };
 
@@ -55,14 +45,14 @@ public:
     RangeBasedTemperatureProvider(
             double threshold,
             Conditions* conditions
-    ) : TemperatureProvider(threshold) {
+    ) {
         this->conditions = conditions;
     }
 
     double getTemperature() override {
         double max = conditions->estimateMax();
         double min = conditions->estimateMin();
-        return -(max - min) / log(threshold) ;
+        return -(max - min);
     }
 };
 

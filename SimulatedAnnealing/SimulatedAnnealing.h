@@ -4,10 +4,14 @@
 #include "Problem/Solution.h"
 #include "CoolingSchedule//CoolingSchedule.h"
 #include "InitialTemperature/TemperatureProvider.h"
+#include "AcceptanceDistribution/AcceptanceDistribution.h"
 
 class SimulatedAnnealing {
 public:
-    SimulatedAnnealing(CoolingSchedule *schedule, TemperatureProvider *temperatureProvider);
+    SimulatedAnnealing(CoolingSchedule *schedule,
+                       TemperatureProvider *temperatureProvider,
+                       AcceptanceDistribution *acceptance);
+
     ~SimulatedAnnealing() = default;
     int numTemps;
     int numIterations;
@@ -16,7 +20,7 @@ public:
     double Start(Solution* solution, Solution* wk1, Solution* wk2, double goal);
 private:
     CoolingSchedule* coolingSchedule;
-    bool IsAcceptedByMetropolis(double temperature, double deltaError);
+    AcceptanceDistribution* acceptanceDist;
     double Anneal(Solution* solution, Solution* wk1, Solution* wk2, double goal);
     double finalTemp;
 };
