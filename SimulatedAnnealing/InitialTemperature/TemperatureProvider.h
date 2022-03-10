@@ -4,6 +4,7 @@
 #include "../Problem/Solution.h"
 #include "../Problem/Conditions.h"
 #include "stdexcept"
+#include "math.h"
 
 class TemperatureProvider {
 public:
@@ -43,7 +44,6 @@ private:
     Conditions* conditions;
 public:
     RangeBasedTemperatureProvider(
-            double threshold,
             Conditions* conditions
     ) {
         this->conditions = conditions;

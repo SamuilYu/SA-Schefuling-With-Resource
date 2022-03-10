@@ -12,13 +12,13 @@ private:
         index++;
     }
 public:
-    GeometricCoolingSchedule(double q): CoolingSchedule(val) {
+    GeometricCoolingSchedule(double q) {
         factor = q;
     }
 };
 
 class CoolingScheduleFromInitialValue: public CoolingSchedule {
-private:
+protected:
     double initialValue;
 public:
     void setInitialTemperature(double val) override {

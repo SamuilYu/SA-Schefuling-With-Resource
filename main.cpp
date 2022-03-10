@@ -1,5 +1,9 @@
 #include "iostream"
+#include "SimulatedAnnealing/Factories/CoolingScheduleFactory.h"
 
 int main() {
-    std::cout << "This is hello" << std::endl;
+    auto factory = new Factories::CoolingScheduleFactory();
+    auto cs = factory->create<double>("geometric", 0.95);
+    cs->setInitialTemperature(100);
+    std::cout << cs->getNextTemperature() << std::endl;
 }
