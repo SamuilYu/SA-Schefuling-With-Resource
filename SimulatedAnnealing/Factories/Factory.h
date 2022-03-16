@@ -15,7 +15,6 @@ namespace Factories {
         template<typename... Types>
         class ICreator {
         public:
-            virtual std::shared_ptr<T> create() = 0;
             virtual std::shared_ptr<T> create(Types... args) = 0;
         };
 
@@ -29,12 +28,6 @@ namespace Factories {
                 return nullptr;
             }
 
-            std::shared_ptr<T> create() override {
-                if constexpr (std::is_constructible_v <S>) {
-                    return std::make_shared<S>(S());
-                }
-                return nullptr;
-            }
         };
 
         template<typename... Types>
@@ -42,12 +35,9 @@ namespace Factories {
 
 
         template<typename... Types>
-        static Registered<Types...> registered;
+        static const Registered<Types...> registered = {};
 
     public:
-        std::shared_ptr<T> create (std::string type) {
-            return registered<>[type] -> create();
-        }
 
         template <typename... Types>
         std::shared_ptr<T> create (std::string type, Types... args) {

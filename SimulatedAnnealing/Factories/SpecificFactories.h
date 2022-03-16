@@ -1,9 +1,5 @@
-//
-// Created by samuil on 10.03.2022.
-//
-
-#ifndef SA_SCHEDULING_RESOURCES_COOLINGSCHEDULEFACTORY_H
-#define SA_SCHEDULING_RESOURCES_COOLINGSCHEDULEFACTORY_H
+#ifndef SA_SCHEDULING_RESOURCES_SPECIFICFACTORIES_H
+#define SA_SCHEDULING_RESOURCES_SPECIFICFACTORIES_H
 
 #include "Factory.h"
 #include "map"
@@ -13,6 +9,7 @@
 #include "../AcceptanceDistribution/AcceptanceDistribution.h"
 
 namespace Factories {
+    template<> template<> Factory<CoolingSchedule>::Registered<> Factory<CoolingSchedule>::registered<> = {};
     template<> template<> Factory<CoolingSchedule>::Registered<double> Factory<CoolingSchedule>::registered<double> = {};
     template<> template<> Factory<AcceptanceDistribution>::Registered<double, double> Factory<AcceptanceDistribution>::registered<double, double> = {};
     template<> template<> Factory<AcceptanceDistribution>::Registered<double> Factory<AcceptanceDistribution>::registered<double> = {};
@@ -24,9 +21,9 @@ namespace Factories {
     public:
         CoolingScheduleFactory() {
             registered<double>["geometric"] = std::make_shared<Creator<GeometricCoolingSchedule, double>>();
-            registered<double>["boltzmann"] = std::make_shared<Creator<BoltzmannCoolingSchedule, double>>();
-            registered<double>["cauchy"] = std::make_shared<Creator<CauchyCoolingSchedule, double>>();
-            registered<double>["hybrid"] = std::make_shared<Creator<HybridCoolingSchedule, double>>();
+            registered<>["boltzmann"] = std::make_shared<Creator<BoltzmannCoolingSchedule>>();
+            registered<>["cauchy"] = std::make_shared<Creator<CauchyCoolingSchedule>>();
+            registered<>["hybrid"] = std::make_shared<Creator<HybridCoolingSchedule>>();
         }
     };
 
@@ -48,4 +45,4 @@ namespace Factories {
 
 }
 
-#endif //SA_SCHEDULING_RESOURCES_COOLINGSCHEDULEFACTORY_H
+#endif //SA_SCHEDULING_RESOURCES_SPECIFICFACTORIES_H

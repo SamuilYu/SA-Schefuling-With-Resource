@@ -1,0 +1,26 @@
+{
+  "SimulatedAnnealingParameters": {
+    "CoolingSchedule": {
+      "type": "boltzmann"
+    },
+    "AcceptanceDistribution": {
+      "type": "one-wing",
+      "parameters": {
+        "threshold": 0.8
+      }
+    },
+    "InitialTemperatureProvider": {
+      "type": "statistical",
+      "parameters": {
+        "numOfRuns": 1000
+      }
+    },
+    "Parallel": {
+      "isParallel": true,
+      "type": "decomposition",
+      "parameters": {
+        "threads": 30
+      }
+    }
+  }
+}

@@ -1,9 +1,10 @@
 #include "iostream"
-#include "SimulatedAnnealing/Factories/CoolingScheduleFactory.h"
+#include "Parsers/ParametersParser.h"
 
 int main() {
-    auto factory = new Factories::CoolingScheduleFactory();
-    auto cs = factory->create<double>("geometric", 0.95);
+    auto parameters = ParametersParser().parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/Parsers/example.json", nullptr, nullptr);
+
+    auto cs = parameters.coolingSchedule;
     cs->setInitialTemperature(100);
-    std::cout << cs->getNextTemperature() << std::endl;
+    std::cout << cs->getNextTemperature() << "," << cs->getNextTemperature() << "," << cs->getNextTemperature() << "," << cs->getNextTemperature() << std::endl;
 }
