@@ -73,7 +73,6 @@ private:
         } else if (type == "two-wing") {
             auto deteriorationThreshold = parameters.get<double>("deteriorationThreshold");
             auto improvementThreshold = parameters.get<double>("improvementThreshold");
-            auto numOfRuns = ptree.get<int>("parameters.numOfRuns");
             return adFactory.create<double, double>(type, improvementThreshold, deteriorationThreshold);
         }
         throw std::logic_error("Illegal argument for acceptance distribution");

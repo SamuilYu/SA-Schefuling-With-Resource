@@ -25,5 +25,6 @@ enable_cxx_compiler_flag_if_supported("-debug")
 file(GLOB SOURCES SimulatedAnnealing/*.cpp SimulatedAnnealing/*.h
         SimulatedAnnealing/*/*.h SimulatedAnnealing/*/*.cpp Parsers/*.cpp Parsers/*.h)
 add_executable(${PROJECT_NAME} main.cpp ${SOURCES})
+find_package(Boost 1.74 REQUIRED COMPONENTS graph)
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
