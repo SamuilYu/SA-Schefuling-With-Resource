@@ -29,6 +29,7 @@ public:
         double sum = 0.0;
         double sums = 0.0;
         double seed = 1000.0;
+        solution -> Initialize();
         for (int i = 0; i < N; i++) {
             E = solution->Perturb(seed, seed);
             sum += E;

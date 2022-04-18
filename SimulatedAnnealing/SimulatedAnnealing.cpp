@@ -15,22 +15,19 @@ SimulatedAnnealing::SimulatedAnnealing(
     coolingSchedule -> setInitialTemperature(initialTemp);
     acceptanceDist = acceptance;
     finalTemp = 0.0001;
-    cycles = 4;
 }
 
-double SimulatedAnnealing::Start(Solution* solution, Solution* wk1, Solution* wk2, double goal) {
+double SimulatedAnnealing::Start(Solution* solution, Solution* wk1, Solution* wk2, int cycles) {
     for (int i = 0; i < cycles; i++) {
-        if (Anneal(solution, wk1, wk2, goal) <= goal) break;
+        Anneal(solution, wk1, wk2);
     }
     return solution->GetError();
 }
 
-double SimulatedAnnealing::Anneal(Solution* solution, Solution* wk1, Solution* wk2, double goal) {
+double SimulatedAnnealing::Anneal(Solution* solution, Solution* wk1, Solution* wk2) {
     double error = solution->Initialize();
-    if (error <= goal) return error;
     wk1 = solution;
     wk2 = solution;
-    finalTemp = goal;
     bool hasImproved = false;
     double temperature, deltaError;
     int i;
@@ -43,7 +40,6 @@ double SimulatedAnnealing::Anneal(Solution* solution, Solution* wk1, Solution* w
             if (acceptanceDist -> isAccepted(temperature, deltaError)) {
                 wk2 = wk1;
                 hasImproved = true;
-                if (wk1->GetError() <= goal) break;
             }
         }
         if (hasImproved) // If saw improvement at this temperature
@@ -51,7 +47,6 @@ double SimulatedAnnealing::Anneal(Solution* solution, Solution* wk1, Solution* w
             wk1 = wk2;
             solution = wk2;
             error = solution->GetError();
-            if (error <= goal) break;
         }
     }
     return solution->GetError();

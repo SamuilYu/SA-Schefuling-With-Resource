@@ -3,11 +3,7 @@
 
 #include "fstream"
 #include "boost/graph/graphml.hpp"
-
-using DependencyGraph =
-boost::adjacency_list<
-        boost::vecS, boost::vecS, boost::directedS,
-        boost::property<boost::vertex_potential_t, double>>;
+#include "../UniprocessorSchedulingWithResource/SchedulingConditions.h"
 
 class DependencyGraphParser {
 public:

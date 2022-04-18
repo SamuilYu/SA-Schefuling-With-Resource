@@ -31,7 +31,7 @@ namespace Factories {
     public:
         TemperatureProviderFactory() {
             registered<Conditions*>["range"] = std::make_shared<Creator<RangeBasedTemperatureProvider, Conditions*>>();
-            registered<Solution*, int>["boltzmann"] = std::make_shared<Creator<StatisticalTemperatureProvider, Solution*, int>>();
+            registered<Solution*, int>["statistical"] = std::make_shared<Creator<StatisticalTemperatureProvider, Solution*, int>>();
         }
     };
 

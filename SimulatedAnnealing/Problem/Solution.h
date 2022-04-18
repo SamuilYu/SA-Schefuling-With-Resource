@@ -5,11 +5,10 @@
 class Solution {
 public:
     Solution(void);
-    ~Solution(void);
     double Initialize(void);
     double Perturb(double temperature, double initialTemperature);
     double GetError(void);
-    virtual Solution& operator =(const Solution& init) = 0;
+    virtual Solution& operator=(const Solution& init) = 0;
 protected:
     double error;
 private:

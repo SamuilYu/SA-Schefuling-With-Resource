@@ -16,12 +16,11 @@ public:
     int numTemps;
     int numIterations;
     double initialTemp;
-    int cycles;
-    double Start(Solution* solution, Solution* wk1, Solution* wk2, double goal);
+    double Start(Solution* solution, Solution* wk1, Solution* wk2, int cycles);
 private:
     CoolingSchedule* coolingSchedule;
     AcceptanceDistribution* acceptanceDist;
-    double Anneal(Solution* solution, Solution* wk1, Solution* wk2, double goal);
+    double Anneal(Solution* solution, Solution* wk1, Solution* wk2);
     double finalTemp;
 };
 

@@ -1,11 +1,8 @@
 #include "iostream"
 #include "Parsers/ParametersParser.h"
 #include "Parsers/DependencyGraphParser.h"
-#include "boost/graph/adjacency_list.hpp"
-#include "boost/pending/property.hpp"
-#include "boost/property_map/property_map.hpp"
-#include "boost/graph/graphml.hpp"
-#include "boost/version.hpp"
+#include "UniprocessorSchedulingWithResource/Schedule.h"
+#include "SimulatedAnnealing/SimulatedAnnealing.h"
 
 int main() {
 //    using DependencyGraph =
@@ -34,8 +31,22 @@ int main() {
 //
 //    boost::write_graphml(std::cout, g, dp);
 //    std::cout << BOOST_VERSION << std::endl;
-    DependencyGraphParser::parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/Parsers/example2.xml");
-//    auto cs = parameters.coolingSchedule;
+    auto dp = DependencyGraphParser::parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/Parsers/example2.xml");
+    auto conditions = SchedulingConditions(*dp);
+    auto probe = Schedule(conditions);
+    auto parameters = ParametersParser().parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/Parsers/example.json", &conditions, &probe);
+    auto sa = SimulatedAnnealing(parameters.coolingSchedule.get(),
+                                 parameters.temperatureProvider.get(),
+                                 parameters.acceptanceDistribution.get());
+    auto schedule = Schedule(conditions);
+    auto wk1 = Schedule(conditions);
+    auto wk2 = Schedule(conditions);
+    sa.Start(&schedule, &wk1, &wk2, 1000);
+    for (auto each: schedule.getValue()) {
+        std::cout << each << " ";
+    }
+    std::cout << std::endl << schedule.GetError();
+    //    auto cs = parameters.coolingSchedule;
 //    cs->setInitialTemperature(100);
 //    std::cout << cs->getNextTemperature() << "," << cs->getNextTemperature() << "," << cs->getNextTemperature() << "," << cs->getNextTemperature() << std::endl;
 
