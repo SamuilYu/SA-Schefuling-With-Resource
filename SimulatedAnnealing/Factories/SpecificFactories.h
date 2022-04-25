@@ -38,8 +38,8 @@ namespace Factories {
     class AcceptanceDistributionFactory: public Factory<AcceptanceDistribution> {
     public:
         AcceptanceDistributionFactory() {
-            registered<double>["one-wing"] = std::make_shared<Creator<RangeBasedTemperatureProvider, double>>();
-            registered<double, double>["two-wing"] = std::make_shared<Creator<StatisticalTemperatureProvider, double, double>>();
+            registered<double>["one-wing"] = std::make_shared<Creator<OneWingDistribution, double>>();
+            registered<double, double>["two-wing"] = std::make_shared<Creator<TwoWingDistribution, double, double>>();
         }
     };
 

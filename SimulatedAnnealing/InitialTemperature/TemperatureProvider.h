@@ -36,7 +36,7 @@ public:
             sums += (E * E);
         }
         double variance = sums / (N - 1) - (sum * sum) / (N * (N - 1));
-        return -sqrt(variance) / seed;
+        return sqrt(variance);
     }
 };
 

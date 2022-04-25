@@ -31,7 +31,7 @@ int main() {
 //
 //    boost::write_graphml(std::cout, g, dp);
 //    std::cout << BOOST_VERSION << std::endl;
-    auto dp = DependencyGraphParser::parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/Parsers/example2.xml");
+    auto dp = DependencyGraphParser::parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/data/graphs/dag0.txt");
     auto conditions = SchedulingConditions(*dp);
     auto probe = Schedule(conditions);
     auto parameters = ParametersParser().parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/Parsers/example.json", &conditions, &probe);

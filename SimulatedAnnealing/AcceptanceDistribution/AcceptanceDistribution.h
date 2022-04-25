@@ -22,7 +22,7 @@ class OneWingDistribution : public AcceptanceDistribution {
 private:
     double threshold;
 public:
-    explicit OneWingDistribution(double threshold) {
+    OneWingDistribution(double threshold) {
         if (threshold > 1.0 || threshold < 0.0) {
             throw std::logic_error("Illegal threshold for probability.");
         }
@@ -49,9 +49,9 @@ public:
     }
 
     bool isAccepted(double temperature, double deltaError) override {
-        double random = Random(0.0, 0.1);
+        double random = Random(0.0, 1.0);
         if (deltaError <= 0) {
-            return random < exp(log(deteriorationThreshold) * deltaError / temperature);
+            return random < 1 - exp(log(1 - deteriorationThreshold) * deltaError / temperature);
         }
         return random < exp(-log(improvementThreshold) * deltaError / temperature);
     }

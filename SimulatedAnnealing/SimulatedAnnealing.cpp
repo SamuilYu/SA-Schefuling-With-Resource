@@ -1,3 +1,4 @@
+#include <iostream>
 #include "SimulatedAnnealing.h"
 #include "CoolingSchedule/CoolingSchedule.h"
 #include "InitialTemperature/TemperatureProvider.h"
@@ -18,9 +19,15 @@ SimulatedAnnealing::SimulatedAnnealing(
 }
 
 double SimulatedAnnealing::Start(Solution* solution, Solution* wk1, Solution* wk2, int cycles) {
-    for (int i = 0; i < cycles; i++) {
+    double sum = 0;
+    double sums = 0;
+    int n = 10;
+    for (int i = 0; i < n; i++) {
         Anneal(solution, wk1, wk2);
+        sum += solution -> GetError();
+        sums += solution -> GetError() * solution -> GetError();
     }
+    std::cout << sqrt(sums / n - sum * sum / n / (n - 1)) << std::endl;
     return solution->GetError();
 }
 
@@ -40,6 +47,8 @@ double SimulatedAnnealing::Anneal(Solution* solution, Solution* wk1, Solution* w
             if (acceptanceDist -> isAccepted(temperature, deltaError)) {
                 wk2 = wk1;
                 hasImproved = true;
+            } else {
+                std::cout << "Did not accept" << std::endl;
             }
         }
         if (hasImproved) // If saw improvement at this temperature

@@ -1,0 +1,2 @@
+Given testcase contains 500 randomly generated DAGs with 30-100 nodes each whereas each DAG node has its size defined.
+Each node can have 1 or 2 parents and any number of children. DAG nodes can be classified into input nodes (no parents), output nodes (no children) and internal nodes.
