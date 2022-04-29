@@ -10,7 +10,7 @@ class SimulatedAnnealing {
 public:
     SimulatedAnnealing(CoolingSchedule *schedule,
                        TemperatureProvider *temperatureProvider,
-                       AcceptanceDistribution *acceptance);
+                       AcceptanceDistribution *acceptance, int, int);
 
     ~SimulatedAnnealing() = default;
     int numTemps;

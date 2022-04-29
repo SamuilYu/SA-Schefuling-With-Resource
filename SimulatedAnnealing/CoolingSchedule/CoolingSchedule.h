@@ -23,6 +23,8 @@ public:
             value = val;
         }
     }
+
+    virtual void restart() = 0;
 };
 
 #endif //SA_SCHEDULING_RESOURCES_TEMPERARURE_H

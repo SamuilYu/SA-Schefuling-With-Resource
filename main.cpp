@@ -31,17 +31,18 @@ int main() {
 //
 //    boost::write_graphml(std::cout, g, dp);
 //    std::cout << BOOST_VERSION << std::endl;
-    auto dp = DependencyGraphParser::parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/data/graphs/dag0.txt");
+    auto dp = DependencyGraphParser::parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/data/graphs/dag156.txt");
     auto conditions = SchedulingConditions(*dp);
     auto probe = Schedule(conditions);
     auto parameters = ParametersParser().parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/Parsers/example.json", &conditions, &probe);
     auto sa = SimulatedAnnealing(parameters.coolingSchedule.get(),
                                  parameters.temperatureProvider.get(),
-                                 parameters.acceptanceDistribution.get());
+                                 parameters.acceptanceDistribution.get(),
+                                 100,100);
     auto schedule = Schedule(conditions);
     auto wk1 = Schedule(conditions);
     auto wk2 = Schedule(conditions);
-    sa.Start(&schedule, &wk1, &wk2, 1000);
+    sa.Start(&schedule, &wk1, &wk2, 30);
     for (auto each: schedule.getValue()) {
         std::cout << each << " ";
     }

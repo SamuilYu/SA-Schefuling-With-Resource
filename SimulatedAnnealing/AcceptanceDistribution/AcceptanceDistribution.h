@@ -31,7 +31,7 @@ public:
 
     bool isAccepted(double temperature, double deltaError) override {
         if (deltaError <= 0) return true;
-        return Random(0.0, 1.0) < exp(-log(threshold) * deltaError / temperature);
+        return Random(0.0, 1.0) < exp(log(threshold) * deltaError / temperature);
     }
 };
 
@@ -51,9 +51,9 @@ public:
     bool isAccepted(double temperature, double deltaError) override {
         double random = Random(0.0, 1.0);
         if (deltaError <= 0) {
-            return random < 1 - exp(log(1 - deteriorationThreshold) * deltaError / temperature);
+            return random < 1 - exp(-log(1 - deteriorationThreshold) * deltaError / temperature);
         }
-        return random < exp(-log(improvementThreshold) * deltaError / temperature);
+        return random < exp(log(improvementThreshold) * deltaError / temperature);
     }
 };
 

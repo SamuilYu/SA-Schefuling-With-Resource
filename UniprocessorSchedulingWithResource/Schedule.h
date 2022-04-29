@@ -11,6 +11,7 @@
 class Schedule: public Solution {
 private:
     std::vector<int> value;
+    std::vector<int> previousValue;
     SchedulingConditions conditions;
 public:
     explicit Schedule(const SchedulingConditions &conditions) : conditions(conditions) {}
@@ -30,6 +31,10 @@ public:
         return value;
     }
 
+    void SetPrevious() override {
+        value = previousValue;
+    }
+
 private:
     static long Random(long a) {
         std::random_device rd;
@@ -39,37 +44,48 @@ private:
     }
 
     void OnInitialize(void) override {
+        value = {};
         boost::topological_sort(conditions.getDependencyGraph(), std::back_inserter(value));
         std::reverse(value.begin(), value.end());
     }
 
     void OnPerturb(double temperature, double initialTemperature) override {
+        bool squeezed = true;
+        int attempt = 0;
+        long windowBetweenPredAndCur;
+        long windowBetweenCurAndPost;
         auto currentVertex = value.begin() + Random((int) value.size());
-        auto rCurrentVertex = std::make_reverse_iterator(currentVertex);
         auto closestDescendant = currentVertex;
         auto closestPredecessor = currentVertex;
+        while (squeezed) {
+            currentVertex = value.begin() + Random((int) value.size());
+            closestDescendant = currentVertex;
+            closestPredecessor = currentVertex;
 
-        for (; closestPredecessor != value.begin(); closestPredecessor--) {
-            if (boost::edge(*closestPredecessor, *currentVertex, conditions.getDependencyGraph()).second) {
-                break;
+            for (; closestPredecessor != value.begin(); closestPredecessor--) {
+                if (boost::edge(*closestPredecessor, *currentVertex, conditions.getDependencyGraph()).second) {
+                    break;
+                }
             }
-        }
-        if (closestPredecessor == value.begin()) {
-            if (!boost::edge(*closestPredecessor, *currentVertex, conditions.getDependencyGraph()).second) {
-                closestPredecessor = value.end();
+            if (closestPredecessor == value.begin()) {
+                if (!boost::edge(*closestPredecessor, *currentVertex, conditions.getDependencyGraph()).second) {
+                    closestPredecessor = value.end();
+                }
             }
+
+            for (; closestDescendant != value.end(); closestDescendant++) {
+                if (boost::edge(*currentVertex, *closestDescendant, conditions.getDependencyGraph()).second) {
+                    break;
+                }
+            }
+            windowBetweenPredAndCur = closestPredecessor == value.end()?
+                                           currentVertex - value.begin() : (currentVertex - closestPredecessor - 1);
+            windowBetweenCurAndPost = (closestDescendant - currentVertex - 1);
+            squeezed = (attempt < value.size()) && (windowBetweenCurAndPost + windowBetweenPredAndCur == 0);
         }
 
-        for (; closestDescendant != value.end(); closestDescendant++) {
-            if (boost::edge(*currentVertex, *closestDescendant, conditions.getDependencyGraph()).second) {
-                break;
-            }
-        }
-
-        auto windowBetweenPredAndCur = closestPredecessor == value.end()?
-                currentVertex - value.begin() : (currentVertex - closestPredecessor - 1);
-        auto windowBetweenCurAndPost = (closestDescendant - currentVertex - 1);
         if ( windowBetweenCurAndPost + windowBetweenPredAndCur == 0) {
+            previousValue = value;
             return;
         }
         auto numberToSwitchWith = Random( windowBetweenCurAndPost + windowBetweenPredAndCur);
@@ -94,6 +110,7 @@ private:
                 newValue.emplace_back(*it);
             }
         }
+        previousValue = value;
         value = newValue;
     }
 

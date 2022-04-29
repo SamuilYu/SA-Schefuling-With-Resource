@@ -9,6 +9,9 @@ public:
     double Perturb(double temperature, double initialTemperature);
     double GetError(void);
     virtual Solution& operator=(const Solution& init) = 0;
+
+    virtual void SetPrevious()=0;
+
 protected:
     double error;
 private:

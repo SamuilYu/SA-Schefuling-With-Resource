@@ -6,6 +6,7 @@ Solution::Solution() {
 }
 
 double Solution::GetError() {
+    error = fabs(OnComputeError());
     return error;
 }
 
@@ -20,3 +21,4 @@ double Solution::Perturb(double temperature, double initialTemperature) {
     error = fabs(OnComputeError());
     return error;
 }
+

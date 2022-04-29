@@ -15,6 +15,14 @@ public:
     GeometricCoolingSchedule(double q) {
         factor = q;
     }
+
+
+public:
+    void restart() override {
+        for (index; 1 < index; index--) {
+            value / factor;
+        }
+    }
 };
 
 class CoolingScheduleFromInitialValue: public CoolingSchedule {
@@ -26,6 +34,10 @@ public:
             CoolingSchedule::setInitialTemperature(val);
             initialValue = val;
         }
+    }
+
+    void restart() override {
+        index = 1;
     }
 };
 

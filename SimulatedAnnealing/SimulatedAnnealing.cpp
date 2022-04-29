@@ -7,10 +7,12 @@
 SimulatedAnnealing::SimulatedAnnealing(
         CoolingSchedule* schedule,
         TemperatureProvider* temperatureProvider,
-        AcceptanceDistribution* acceptance
+        AcceptanceDistribution* acceptance,
+        int numTemps,
+        int numIterations
     ) {
-    numTemps = 100;
-    numIterations = 100;
+    this -> numTemps = numTemps;
+    this -> numIterations = numIterations;
     initialTemp = temperatureProvider->getTemperature();
     coolingSchedule = schedule;
     coolingSchedule -> setInitialTemperature(initialTemp);
@@ -24,39 +26,44 @@ double SimulatedAnnealing::Start(Solution* solution, Solution* wk1, Solution* wk
     int n = 10;
     for (int i = 0; i < n; i++) {
         Anneal(solution, wk1, wk2);
-        sum += solution -> GetError();
-        sums += solution -> GetError() * solution -> GetError();
+        auto error = solution -> GetError();
+        sum += error;
+        sums += error * error;
+        std::cout << "Did " << i << "th time: " << error << std::endl;
     }
-    std::cout << sqrt(sums / n - sum * sum / n / (n - 1)) << std::endl;
+    std::cout << sums / (n - 1) << std::endl << sum * sum / n / (n - 1) << std::endl  <<
+    sqrt(sums / (n - 1) - sum * sum / n / (n - 1)) / (sum / n) << std::endl;
     return solution->GetError();
 }
 
 double SimulatedAnnealing::Anneal(Solution* solution, Solution* wk1, Solution* wk2) {
     double error = solution->Initialize();
-    wk1 = solution;
-    wk2 = solution;
-    bool hasImproved = false;
+    double newError;
+    double maxError = error;
+    double minError = error;
+
+    (*wk1) = (*solution);
+//    wk2 = solution;
     double temperature, deltaError;
-    int i;
+    coolingSchedule -> restart();
     for (int n = 0; n < numTemps; n++) {
         temperature = coolingSchedule->getNextTemperature();
-        hasImproved = false;
-
-        for (i = 0; i < numIterations; i++) {
-            deltaError = wk1->Perturb(temperature, initialTemp) - error;
+        for (int i = 0; i < numIterations; i++) {
+            newError = wk1->Perturb(temperature, initialTemp);
+            deltaError = newError - error;
             if (acceptanceDist -> isAccepted(temperature, deltaError)) {
-                wk2 = wk1;
-                hasImproved = true;
+                error = newError;
+                if (error < minError) {
+                    (*solution) = (*wk1);
+                    minError = error;
+                }
+                maxError = error > maxError ? error: maxError;
             } else {
-                std::cout << "Did not accept" << std::endl;
+                wk1 -> SetPrevious();
             }
         }
-        if (hasImproved) // If saw improvement at this temperature
-        {
-            wk1 = wk2;
-            solution = wk2;
-            error = solution->GetError();
-        }
     }
+    std::cout << "Min Error=" << minError << std::endl;
+    std::cout << "Max Error=" << maxError << std::endl;
     return solution->GetError();
 }
