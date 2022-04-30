@@ -16,10 +16,11 @@
       }
     },
     "Parallel": {
-      "type": "no",
+      "type": "multi",
       "parameters": {
         "numTemps": 100,
-        "numIterations": 100
+        "numIterations": 100,
+        "numThreads": 3
       }
     }
   }

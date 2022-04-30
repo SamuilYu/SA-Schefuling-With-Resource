@@ -24,7 +24,7 @@ SimulatedAnnealing::SimulatedAnnealing(
 double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution, std::shared_ptr<Solution> wk1, int cycles) {
     double sum = 0;
     double sums = 0;
-    int n = 10;
+    int n = cycles;
     for (int i = 0; i < n; i++) {
         Anneal(solution, wk1);
         auto error = solution -> GetError();
