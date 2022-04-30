@@ -25,7 +25,6 @@ public:
             str >> vertex >> potential;
             boost::add_edge(vertex, vertex, g);
             boost::remove_edge(vertex, vertex, g);
-            std::cout << vertex << std::endl;
             boost::put(boost::vertex_potential_t(), g, vertex, potential);
             while (str >> child) {
                 boost::add_edge(vertex, child, g);

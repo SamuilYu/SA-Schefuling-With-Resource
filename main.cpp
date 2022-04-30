@@ -1,4 +1,5 @@
 #include "iostream"
+#include "thread"
 #include "Parsers/ParametersParser.h"
 #include "Parsers/DependencyGraphParser.h"
 #include "UniprocessorSchedulingWithResource/Schedule.h"
@@ -31,6 +32,7 @@ int main() {
 //
 //    boost::write_graphml(std::cout, g, dp);
 //    std::cout << BOOST_VERSION << std::endl;
+    std::cout << std::thread::hardware_concurrency << std::endl;
     auto dp = DependencyGraphParser::parse("/home/samuil/CLionProjects/SA-Schefuling-With-Resource/data/graphs/dag156.txt");
     auto conditions = SchedulingConditions(*dp);
     auto probe = Schedule(conditions);
