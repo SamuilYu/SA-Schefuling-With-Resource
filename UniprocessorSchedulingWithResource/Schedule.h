@@ -1,6 +1,8 @@
 #ifndef SA_SCHEDULING_RESOURCES_SCHEDULE_H
 #define SA_SCHEDULING_RESOURCES_SCHEDULE_H
 
+#include <utility>
+
 #include "../SimulatedAnnealing/Problem/Solution.h"
 #include "boost/graph/topological_sort.hpp"
 #include "SchedulingConditions.h"
@@ -14,12 +16,25 @@ private:
     std::vector<int> previousValue;
     SchedulingConditions conditions;
 public:
-    explicit Schedule(const SchedulingConditions &conditions) : conditions(conditions) {}
+    explicit Schedule(const SchedulingConditions& conditions) : conditions(conditions) {}
+
+
+    Schedule& operator=(const Schedule& other) {
+        this -> value = other.value;
+        this -> previousValue = other.previousValue;
+        this -> conditions = other.conditions;
+        return *this;
+    }
+
+    Solution *clone() override {
+        return new Schedule(*this);
+    }
 
     Solution& operator=(const Solution &init) override {
         if (typeid(init) == typeid(Schedule)) {
 
             this->value = dynamic_cast<Schedule&>(const_cast<Solution&>(init)).value;
+            this->previousValue = dynamic_cast<Schedule&>(const_cast<Solution&>(init)).previousValue;
             this->conditions = dynamic_cast<Schedule&>(const_cast<Solution&>(init)).conditions;
             return dynamic_cast<Solution&>(*this);
         } else {

@@ -11,6 +11,7 @@ public:
     virtual Solution& operator=(const Solution& init) = 0;
 
     virtual void SetPrevious()=0;
+    virtual Solution* clone() = 0;
 
 protected:
     double error;
