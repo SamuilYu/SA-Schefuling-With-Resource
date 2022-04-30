@@ -1,31 +1,32 @@
 #include <iostream>
+#include <utility>
 #include "SimulatedAnnealing.h"
 #include "CoolingSchedule/CoolingSchedule.h"
 #include "InitialTemperature/TemperatureProvider.h"
 #include "AcceptanceDistribution/AcceptanceDistribution.h"
 
 SimulatedAnnealing::SimulatedAnnealing(
-        CoolingSchedule* schedule,
-        TemperatureProvider* temperatureProvider,
-        AcceptanceDistribution* acceptance,
+        std::shared_ptr<CoolingSchedule> schedule,
+        const std::shared_ptr<TemperatureProvider>& temperatureProvider,
+        std:: shared_ptr<AcceptanceDistribution> acceptance,
         int numTemps,
         int numIterations
     ) {
     this -> numTemps = numTemps;
     this -> numIterations = numIterations;
     initialTemp = temperatureProvider->getTemperature();
-    coolingSchedule = schedule;
+    coolingSchedule = std::move(schedule);
     coolingSchedule -> setInitialTemperature(initialTemp);
-    acceptanceDist = acceptance;
+    acceptanceDist = std::move(acceptance);
     finalTemp = 0.0001;
 }
 
-double SimulatedAnnealing::Start(Solution* solution, Solution* wk1, Solution* wk2, int cycles) {
+double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution, std::shared_ptr<Solution> wk1, int cycles) {
     double sum = 0;
     double sums = 0;
     int n = 10;
     for (int i = 0; i < n; i++) {
-        Anneal(solution, wk1, wk2);
+        Anneal(solution, wk1);
         auto error = solution -> GetError();
         sum += error;
         sums += error * error;
@@ -36,7 +37,7 @@ double SimulatedAnnealing::Start(Solution* solution, Solution* wk1, Solution* wk
     return solution->GetError();
 }
 
-double SimulatedAnnealing::Anneal(Solution* solution, Solution* wk1, Solution* wk2) {
+double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution, std::shared_ptr<Solution> wk1) {
     double error = solution->Initialize();
     double newError;
     double maxError = error;

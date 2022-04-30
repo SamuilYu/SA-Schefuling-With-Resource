@@ -16,11 +16,15 @@ public:
         factor = q;
     }
 
+    std::shared_ptr<CoolingSchedule> clone() override {
+        return std::make_shared<GeometricCoolingSchedule>(factor);
+    }
+
 
 public:
     void restart() override {
         for (index; 1 < index; index--) {
-            value / factor;
+            value = value / factor;
         }
     }
 };
@@ -47,6 +51,11 @@ private:
         value = initialValue / log(index + 1);
         index++;
     }
+
+public:
+    std::shared_ptr<CoolingSchedule> clone() override {
+        return std::make_shared<BoltzmannCoolingSchedule>();
+    }
 };
 
 
@@ -56,6 +65,11 @@ private:
         value = initialValue / (index + 1);
         index++;
     }
+
+public:
+    std::shared_ptr<CoolingSchedule> clone() override {
+        return std::make_shared<CauchyCoolingSchedule>();
+    }
 };
 
 class HybridCoolingSchedule: public CoolingScheduleFromInitialValue {
@@ -63,6 +77,11 @@ private:
     void coolDown() override {
         value = initialValue * log(index + 1) / (index + 1);
         index++;
+    }
+
+public:
+    std::shared_ptr<CoolingSchedule> clone() override {
+        return std::make_shared<HybridCoolingSchedule>();
     }
 };
 

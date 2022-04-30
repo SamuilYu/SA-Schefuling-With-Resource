@@ -1,6 +1,8 @@
 #ifndef SA_SCHEDULING_RESOURCES_TEMPERATUREPROVIDER_H
 #define SA_SCHEDULING_RESOURCES_TEMPERATUREPROVIDER_H
 
+#include <utility>
+
 #include "../Problem/Solution.h"
 #include "../Problem/Conditions.h"
 #include "stdexcept"
@@ -9,18 +11,19 @@
 class TemperatureProvider {
 public:
     virtual double getTemperature() = 0;
+    virtual std::shared_ptr<TemperatureProvider> clone() = 0;
 };
 
 class StatisticalTemperatureProvider : public TemperatureProvider {
 private:
-    Solution* solution;
+    std::shared_ptr<Solution> solution;
     int N;
 public:
     StatisticalTemperatureProvider(
-            Solution* solution,
+            std::shared_ptr<Solution> solution,
             int n
     ) {
-        this->solution = solution;
+        this->solution = std::move(solution);
         this->N = n;
     }
 
@@ -38,22 +41,30 @@ public:
         double variance = sums / (N - 1) - (sum * sum) / (N * (N - 1));
         return sqrt(variance);
     }
+
+    std::shared_ptr<TemperatureProvider> clone() override {
+        return std::make_shared<StatisticalTemperatureProvider>(solution->clone(), N);
+    }
 };
 
 class RangeBasedTemperatureProvider : public TemperatureProvider{
 private:
-    Conditions* conditions;
+    std::shared_ptr<Conditions> conditions;
 public:
     RangeBasedTemperatureProvider(
-            Conditions* conditions
+            std::shared_ptr<Conditions> conditions
     ) {
-        this->conditions = conditions;
+        this->conditions = std::move(conditions);
     }
 
     double getTemperature() override {
         double max = conditions->estimateMax();
         double min = conditions->estimateMin();
         return -(max - min);
+    }
+
+    std::shared_ptr<TemperatureProvider> clone() override {
+        return std::make_shared<RangeBasedTemperatureProvider>(conditions->clone());
     }
 };
 

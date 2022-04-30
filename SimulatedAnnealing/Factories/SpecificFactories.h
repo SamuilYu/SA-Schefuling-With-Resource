@@ -13,8 +13,8 @@ namespace Factories {
     template<> template<> Factory<CoolingSchedule>::Registered<double> Factory<CoolingSchedule>::registered<double> = {};
     template<> template<> Factory<AcceptanceDistribution>::Registered<double, double> Factory<AcceptanceDistribution>::registered<double, double> = {};
     template<> template<> Factory<AcceptanceDistribution>::Registered<double> Factory<AcceptanceDistribution>::registered<double> = {};
-    template<> template<> Factory<TemperatureProvider>::Registered<Conditions*> Factory<TemperatureProvider>::registered<Conditions*> = {};
-    template<> template<> Factory<TemperatureProvider>::Registered<Solution*, int> Factory<TemperatureProvider>::registered<Solution*, int> = {};
+    template<> template<> Factory<TemperatureProvider>::Registered<std::shared_ptr<Conditions>> Factory<TemperatureProvider>::registered<std::shared_ptr<Conditions>> = {};
+    template<> template<> Factory<TemperatureProvider>::Registered<std::shared_ptr<Solution>, int> Factory<TemperatureProvider>::registered<std::shared_ptr<Solution>, int> = {};
 
 
     class CoolingScheduleFactory: public Factory<CoolingSchedule> {
@@ -30,8 +30,8 @@ namespace Factories {
     class TemperatureProviderFactory: public Factory<TemperatureProvider> {
     public:
         TemperatureProviderFactory() {
-            registered<Conditions*>["range"] = std::make_shared<Creator<RangeBasedTemperatureProvider, Conditions*>>();
-            registered<Solution*, int>["statistical"] = std::make_shared<Creator<StatisticalTemperatureProvider, Solution*, int>>();
+            registered<std::shared_ptr<Conditions>>["range"] = std::make_shared<Creator<RangeBasedTemperatureProvider, std::shared_ptr<Conditions>>>();
+            registered<std::shared_ptr<Solution>, int>["statistical"] = std::make_shared<Creator<StatisticalTemperatureProvider, std::shared_ptr<Solution>, int>>();
         }
     };
 

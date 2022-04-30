@@ -16,10 +16,10 @@
       }
     },
     "Parallel": {
-      "isParallel": true,
-      "type": "decomposition",
+      "type": "no",
       "parameters": {
-        "threads": 30
+        "numTemps": 100,
+        "numIterations": 100
       }
     }
   }

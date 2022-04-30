@@ -38,6 +38,10 @@ public:
         }
         return max;
     }
+
+    std::shared_ptr<Conditions> clone() override {
+        return std::make_shared<SchedulingConditions>(g);
+    }
 };
 
 

@@ -26,8 +26,8 @@ public:
         return *this;
     }
 
-    Solution *clone() override {
-        return new Schedule(*this);
+    std::shared_ptr<Solution> clone() override {
+        return std::make_shared<Schedule>(*this);
     }
 
     Solution& operator=(const Solution &init) override {

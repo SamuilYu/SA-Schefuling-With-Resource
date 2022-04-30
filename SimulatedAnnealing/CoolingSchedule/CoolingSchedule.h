@@ -24,6 +24,7 @@ public:
         }
     }
 
+    virtual std::shared_ptr<CoolingSchedule> clone()=0;
     virtual void restart() = 0;
 };
 

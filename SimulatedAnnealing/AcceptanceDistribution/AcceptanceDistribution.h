@@ -15,6 +15,7 @@ protected:
 
 public:
     virtual bool isAccepted(double temperature, double deltaError) = 0;
+    virtual std::shared_ptr<AcceptanceDistribution> clone() = 0;
 
 };
 
@@ -32,6 +33,10 @@ public:
     bool isAccepted(double temperature, double deltaError) override {
         if (deltaError <= 0) return true;
         return Random(0.0, 1.0) < exp(log(threshold) * deltaError / temperature);
+    }
+
+    std::shared_ptr<AcceptanceDistribution> clone() override {
+        return std::make_shared<OneWingDistribution>(threshold);
     }
 };
 
@@ -51,9 +56,13 @@ public:
     bool isAccepted(double temperature, double deltaError) override {
         double random = Random(0.0, 1.0);
         if (deltaError <= 0) {
-            return random < 1 - exp(-log(1 - deteriorationThreshold) * deltaError / temperature);
+            return random < 1 - exp(-log(1 - improvementThreshold) * deltaError / temperature);
         }
-        return random < exp(log(improvementThreshold) * deltaError / temperature);
+        return random < exp(log(deteriorationThreshold) * deltaError / temperature);
+    }
+
+    std::shared_ptr<AcceptanceDistribution> clone() override {
+        return std::make_shared<TwoWingDistribution>(improvementThreshold, deteriorationThreshold);
     }
 };
 

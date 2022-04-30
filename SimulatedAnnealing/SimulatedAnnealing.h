@@ -8,19 +8,25 @@
 
 class SimulatedAnnealing {
 public:
-    SimulatedAnnealing(CoolingSchedule *schedule,
-                       TemperatureProvider *temperatureProvider,
-                       AcceptanceDistribution *acceptance, int, int);
+    SimulatedAnnealing(
+            std::shared_ptr<CoolingSchedule> schedule,
+            const std::shared_ptr<TemperatureProvider>& temperatureProvider,
+            std:: shared_ptr<AcceptanceDistribution> acceptance,
+            int numTemps,
+            int numIterations
+    );
 
     ~SimulatedAnnealing() = default;
     int numTemps;
     int numIterations;
     double initialTemp;
-    double Start(Solution* solution, Solution* wk1, Solution* wk2, int cycles);
-private:
-    CoolingSchedule* coolingSchedule;
-    AcceptanceDistribution* acceptanceDist;
-    double Anneal(Solution* solution, Solution* wk1, Solution* wk2);
+    virtual double Start(std::shared_ptr<Solution> solution, std::shared_ptr<Solution> wk1, int cycles);
+
+    double Anneal(std::shared_ptr<Solution> solution, std::shared_ptr<Solution> wk1);
+
+protected:
+    std::shared_ptr<CoolingSchedule> coolingSchedule;
+    std:: shared_ptr<AcceptanceDistribution> acceptanceDist;
     double finalTemp;
 };
 

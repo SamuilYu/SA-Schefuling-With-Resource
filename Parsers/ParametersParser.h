@@ -5,26 +5,28 @@
 #include "../SimulatedAnnealing/InitialTemperature/TemperatureProvider.h"
 #include "../SimulatedAnnealing/AcceptanceDistribution/AcceptanceDistribution.h"
 #include "../SimulatedAnnealing/Factories/SpecificFactories.h"
+#include "../SimulatedAnnealing/SimulatedAnnealing.h"
+#include "../SimulatedAnnealing/ParallelSA.h"
 #include "memory"
 #include <iostream>
 #include <boost/property_tree/json_parser.hpp>
 #include "boost/property_tree/ptree.hpp"
 #include "sstream"
 
-class SimulatedAnnealingParameters {
-public:
-    std::shared_ptr<CoolingSchedule> coolingSchedule;
-    std::shared_ptr<TemperatureProvider> temperatureProvider;
-    std::shared_ptr<AcceptanceDistribution> acceptanceDistribution;
-
-    SimulatedAnnealingParameters(
-            std::shared_ptr<CoolingSchedule> coolingSchedule,
-            std::shared_ptr<TemperatureProvider> temperatureProvider,
-            std::shared_ptr<AcceptanceDistribution> acceptanceDistribution
-            ) : coolingSchedule(std::move(coolingSchedule)),
-            temperatureProvider(std::move(temperatureProvider)),
-            acceptanceDistribution(std::move(acceptanceDistribution)) {}
-};
+//class SimulatedAnnealingParameters {
+//public:
+//    std::shared_ptr<CoolingSchedule> coolingSchedule;
+//    std::shared_ptr<TemperatureProvider> temperatureProvider;
+//    std::shared_ptr<AcceptanceDistribution> acceptanceDistribution;
+//
+//    SimulatedAnnealingParameters(
+//            std::shared_ptr<CoolingSchedule> coolingSchedule,
+//            std::shared_ptr<TemperatureProvider> temperatureProvider,
+//            std::shared_ptr<AcceptanceDistribution> acceptanceDistribution
+//            ) : coolingSchedule(std::move(coolingSchedule)),
+//            temperatureProvider(std::move(temperatureProvider)),
+//            acceptanceDistribution(std::move(acceptanceDistribution)) {}
+//};
 
 class ParametersParser {
 private:
@@ -48,15 +50,15 @@ private:
     std::shared_ptr<TemperatureProvider>
     parseTemperatureProvider(
         const boost::property_tree::basic_ptree<std::basic_string<char>, std::basic_string<char>>& ptree,
-        Conditions* cond,
-        Solution* solution
+        std::shared_ptr<Conditions> cond,
+        std::shared_ptr<Solution> solution
     ) {
         auto type = ptree.get<std::string>("type");
         if (type == "range") {
-            return tpFactory.create<Conditions*>(type, cond);
+            return tpFactory.create<std::shared_ptr<Conditions>>(type, cond);
         } else if (type == "statistical") {
             auto numOfRuns = ptree.get<int>("parameters.numOfRuns");
-            return tpFactory.create<Solution*, int>(type, solution, numOfRuns);
+            return tpFactory.create<std::shared_ptr<Solution>, int>(type, solution, numOfRuns);
         }
         throw std::logic_error("Illegal argument for temperature provider");
     }
@@ -77,18 +79,41 @@ private:
         }
         throw std::logic_error("Illegal argument for acceptance distribution");
     }
+
+    static std::shared_ptr<SimulatedAnnealing>
+    parseSimulatedAnnealing(
+        const boost::property_tree::basic_ptree<std::basic_string<char>, std::basic_string<char>>& ptree,
+        const std::shared_ptr<CoolingSchedule>& cs,
+        const std::shared_ptr<TemperatureProvider>& tp,
+        const std::shared_ptr<AcceptanceDistribution>& ad
+    ) {
+        auto type = ptree.get<std::string>("type");
+        auto parameters = ptree.get_child("parameters");
+        auto numTemps = parameters.get<int>("numTemps");
+
+        auto numIterations = parameters.get<int>("numIterations");
+        if (type == "no") {
+            return std::make_shared<SimulatedAnnealing>(cs,tp,ad,numTemps,numIterations);
+        } else if (type == "multi") {
+            auto numThreads = parameters.get<int>("numThreads");
+            return std::make_shared<ParallelSA>(cs,tp,ad,numTemps,numIterations,numThreads);
+        }
+        throw std::logic_error("Illegal argument for simulated annealing algorithm.");
+    }
 public:
 
-    SimulatedAnnealingParameters parse(const std::string& fileName, Conditions* cond, Solution* solution) {
+    std::shared_ptr<SimulatedAnnealing> parse(const std::string& fileName,std::shared_ptr<Conditions> cond, std::shared_ptr<Solution> solution) {
         boost::property_tree::ptree pt;
         boost::property_tree::json_parser::read_json(fileName, pt);
         auto coolingScheduleConfig = pt.get_child("SimulatedAnnealingParameters.CoolingSchedule");
         auto temperatureProviderConfig = pt.get_child("SimulatedAnnealingParameters.InitialTemperatureProvider");
         auto acceptanceDistributionConfig = pt.get_child("SimulatedAnnealingParameters.AcceptanceDistribution");
+        auto simulatedAnnealingConfig = pt.get_child("SimulatedAnnealingParameters.Parallel");
         auto cs = parseCoolingSchedule(coolingScheduleConfig);
         auto tp = parseTemperatureProvider(temperatureProviderConfig, cond, solution);
         auto ad = parseAcceptanceDistribution(acceptanceDistributionConfig);
-        return {cs, tp, ad};
+        auto sa = parseSimulatedAnnealing(simulatedAnnealingConfig, cs, tp, ad);
+        return sa;
     }
 };
 
