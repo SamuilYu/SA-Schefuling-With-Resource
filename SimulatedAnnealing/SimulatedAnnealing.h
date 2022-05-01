@@ -20,9 +20,9 @@ public:
     int numTemps;
     int numIterations;
     double initialTemp;
-    virtual double Start(std::shared_ptr<Solution> solution, std::shared_ptr<Solution> wk1, int cycles);
+    virtual double Start(std::shared_ptr<Solution> solution, int cycles);
 
-    double Anneal(std::shared_ptr<Solution> solution, std::shared_ptr<Solution> wk1);
+    double Anneal(std::shared_ptr<Solution> solution);
 
 protected:
     std::shared_ptr<CoolingSchedule> coolingSchedule;

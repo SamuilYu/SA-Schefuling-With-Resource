@@ -21,12 +21,12 @@ SimulatedAnnealing::SimulatedAnnealing(
     finalTemp = 0.0001;
 }
 
-double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution, std::shared_ptr<Solution> wk1, int cycles) {
+double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution, int cycles) {
     double sum = 0;
     double sums = 0;
     int n = cycles;
     for (int i = 0; i < n; i++) {
-        Anneal(solution, wk1);
+        Anneal(solution);
         auto error = solution -> GetError();
         sum += error;
         sums += error * error;
@@ -37,14 +37,13 @@ double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution, std::shared
     return solution->GetError();
 }
 
-double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution, std::shared_ptr<Solution> wk1) {
+double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
     double error = solution->Initialize();
     double newError;
     double maxError = error;
     double minError = error;
 
-    (*wk1) = (*solution);
-//    wk2 = solution;
+    auto wk1 = solution->clone();
     double temperature, deltaError;
     coolingSchedule -> restart();
     for (int n = 0; n < numTemps; n++) {

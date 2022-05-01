@@ -2,6 +2,7 @@
 #define SA_SCHEFULING_WITH_RESOURCE_SOLUTION_H
 
 #include "memory"
+#include "vector"
 
 class Solution {
 public:
@@ -12,6 +13,7 @@ public:
     virtual Solution& operator=(const Solution& init) = 0;
 
     virtual void SetPrevious()=0;
+    virtual std::vector<std::shared_ptr<Solution>> breakScope(int numScopes) = 0;
     virtual std::shared_ptr<Solution> clone() = 0;
 
 protected:

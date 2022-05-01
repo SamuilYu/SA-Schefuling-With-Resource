@@ -4,6 +4,7 @@
 #include "ScopedSchedule.h"
 
 class Schedule: public ScopedSchedule {
+public:
     Schedule(const SchedulingConditions& conditions): ScopedSchedule(conditions, conditions) {}
 };
 

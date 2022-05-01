@@ -183,8 +183,8 @@ private:
         return max;
     }
 
-    std::vector<std::shared_ptr<Solution>> breakScope(int numScopes) {
-
+    std::vector<std::shared_ptr<Solution>> breakScope(int numScopes) override {
+        return {};
     }
 };
 
