@@ -10,8 +10,23 @@
 #include "stdexcept"
 #include "iterator"
 #include "boost/graph/reverse_graph.hpp"
-#include "boost/graph/breadth_first_search.hpp"
-#include "queue"
+#include "boost/graph/depth_first_search.hpp"
+#include "boost/graph/copy.hpp"
+
+class collector_visitor: public boost::default_dfs_visitor {
+private:
+    std::set<int> collector = {};
+public:
+    collector_visitor(): boost::default_dfs_visitor() {};
+
+    void discover_vertex(int i, const DependencyGraph& g) {
+        collector.insert(i);
+    }
+
+    [[nodiscard]] std::set<int> getCollector() const {
+        return collector;
+    }
+};
 
 class ScopedSchedule: public Solution {
 private:
@@ -190,18 +205,25 @@ private:
         std::set<std::pair<int, int>> pairs = {};
         std::map<int, std::set<int>> succ = {};
         std::map<int, std::set<int>> pred = {};
-        boost::default_bfs_visitor vis;
-        auto reverseGraph = boost::make_reverse_graph(scope.getDependencyGraph());
+        DependencyGraph reverseGraph;
+        boost::copy_graph(boost::make_reverse_graph(scope.getDependencyGraph()), reverseGraph);
         auto indexMap = boost::get(boost::vertex_index, scope.getDependencyGraph());
         auto colorMap = boost::make_vector_property_map<boost::default_color_type>(indexMap);
         DependencyGraph::vertex_iterator i, j, iend, jend;
         for (boost::tie(i, iend) = boost::vertices(scope.getDependencyGraph()); i != iend; i++) {
             for (boost::tie(j, jend) = boost::vertices(scope.getDependencyGraph()); j != jend; j++) {
-                pairs.insert(std::make_pair(*i, *j));
+                if (*i != *j) {
+                    pairs.insert(std::make_pair(*i, *j));
+                }
             }
-            using vertex_descriptor = boost::graph_traits<DependencyGraph>::vertex_descriptor;
-            std::set<vertex_descriptor> Q;
-            boost::breadth_first_visit(scope.getDependencyGraph(), *i, Q, vis, colorMap);
+            auto vis1 = collector_visitor();
+            boost::depth_first_visit(scope.getDependencyGraph(), *i, vis1, colorMap);
+            pred.insert(std::make_pair(*i, vis1.getCollector()));
+
+
+            auto vis2 = collector_visitor();
+            boost::depth_first_visit(reverseGraph, *i, vis2, colorMap);
+            succ.insert(std::make_pair(*i, vis2.getCollector()));
         }
 
         return {};
