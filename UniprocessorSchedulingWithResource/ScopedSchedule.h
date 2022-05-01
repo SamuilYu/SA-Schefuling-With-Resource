@@ -2,13 +2,16 @@
 #define SA_SCHEDULING_RESOURCES_SCOPEDSCHEDULE_H
 
 #include <utility>
-
 #include "../SimulatedAnnealing/Problem/Solution.h"
 #include "boost/graph/topological_sort.hpp"
+#include "boost/graph/adjacency_list.hpp"
 #include "SchedulingConditions.h"
 #include "vector"
 #include "stdexcept"
 #include "iterator"
+#include "boost/graph/reverse_graph.hpp"
+#include "boost/graph/breadth_first_search.hpp"
+#include "queue"
 
 class ScopedSchedule: public Solution {
 private:
@@ -184,6 +187,23 @@ private:
     }
 
     std::vector<std::shared_ptr<Solution>> breakScope(int numScopes) override {
+        std::set<std::pair<int, int>> pairs = {};
+        std::map<int, std::set<int>> succ = {};
+        std::map<int, std::set<int>> pred = {};
+        boost::default_bfs_visitor vis;
+        auto reverseGraph = boost::make_reverse_graph(scope.getDependencyGraph());
+        auto indexMap = boost::get(boost::vertex_index, scope.getDependencyGraph());
+        auto colorMap = boost::make_vector_property_map<boost::default_color_type>(indexMap);
+        DependencyGraph::vertex_iterator i, j, iend, jend;
+        for (boost::tie(i, iend) = boost::vertices(scope.getDependencyGraph()); i != iend; i++) {
+            for (boost::tie(j, jend) = boost::vertices(scope.getDependencyGraph()); j != jend; j++) {
+                pairs.insert(std::make_pair(*i, *j));
+            }
+            using vertex_descriptor = boost::graph_traits<DependencyGraph>::vertex_descriptor;
+            std::set<vertex_descriptor> Q;
+            boost::breadth_first_visit(scope.getDependencyGraph(), *i, Q, vis, colorMap);
+        }
+
         return {};
     }
 };

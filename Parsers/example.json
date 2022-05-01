@@ -16,11 +16,11 @@
       }
     },
     "Parallel": {
-      "type": "multi",
+      "type": "decomposition",
       "parameters": {
         "numTemps": 100,
         "numIterations": 100,
-        "numThreads": 3
+        "numThreads": 4
       }
     }
   }

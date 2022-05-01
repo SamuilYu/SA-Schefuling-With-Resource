@@ -97,6 +97,9 @@ private:
         } else if (type == "multi") {
             auto numThreads = parameters.get<int>("numThreads");
             return std::make_shared<ParallelSA>(cs,tp,ad,numTemps,numIterations,numThreads);
+        } else if (type == "decomposition") {
+            auto numThreads = parameters.get<int>("numThreads");
+            return std::make_shared<DecompositionParallelSA>(cs,tp,ad,numTemps,numIterations,numThreads);
         }
         throw std::logic_error("Illegal argument for simulated annealing algorithm.");
     }

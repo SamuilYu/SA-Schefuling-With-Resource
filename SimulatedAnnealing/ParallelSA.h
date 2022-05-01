@@ -21,7 +21,7 @@ private:
     }
 
     virtual double run(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>> solutions) {
-        for (int i = 0; i < numThreads && i < std::thread::hardware_concurrency(); i++) {
+        for (int i = 0; i < numThreads; i++) {
             pool.emplace_back(&SimulatedAnnealing::Anneal, algorithms[i], solutions[i]);
         }
         for (auto &th: pool) {
@@ -55,8 +55,8 @@ public:
             numTemps,
             numIterations
     ) {
-        this->numThreads = numThreads;
-        for (int i = 0; i < this->numThreads && i < std::thread::hardware_concurrency(); i++) {
+        this->numThreads = std::min(numThreads, int(std::thread::hardware_concurrency()));
+        for (int i = 0; i < this->numThreads; i++) {
             algorithms.emplace_back(
                     schedule->clone(),
                     temperatureProvider->clone(),
@@ -71,6 +71,19 @@ public:
     double Start(std::shared_ptr<Solution> solution, int cycles) override {
         std::vector<std::shared_ptr<Solution>> solutions = prepareSolutions(solution);
         return run(solution, solutions);
+    }
+};
+
+class DecompositionParallelSA: public ParallelSA {
+public:
+    DecompositionParallelSA(const std::shared_ptr<CoolingSchedule> &schedule,
+                            const std::shared_ptr<TemperatureProvider> &temperatureProvider,
+                            const std::shared_ptr<AcceptanceDistribution> &acceptance, int numTemps, int numIterations,
+                            int numThreads) : ParallelSA(schedule, temperatureProvider, acceptance, numTemps,
+                                                         numIterations, numThreads) {}
+
+    std::vector<std::shared_ptr<Solution>> prepareSolutions(std::shared_ptr<Solution> solution) override {
+        return solution->breakScope(numThreads);
     }
 };
 
