@@ -120,23 +120,25 @@ protected:
                 each = solution->clone();
             }
         }
-        pool.clear();
-        for (int i = 0; i < numThreads; i++) {
-            pool.emplace_back(&SimulatedAnnealing::Anneal,
-                              SimulatedAnnealing(
-                                      coolingSchedule->clone(),
-                                      temperatureProvider->clone(),
-                                      acceptanceDist->clone(),
-                                      numTemps % numStages,
-                                      numIterations),
-                              solutions[i]);
-        }
-        for (auto &th: pool) {
-            th.join();
-        }
-        chooseBest(solution, solutions);
-        for (auto &each: solutions) {
-            each = solution->clone();
+        if (numTemps % numStages != 0) {
+            pool.clear();
+            for (int i = 0; i < numThreads; i++) {
+                pool.emplace_back(&SimulatedAnnealing::Anneal,
+                                  SimulatedAnnealing(
+                                          coolingSchedule->clone(),
+                                          temperatureProvider->clone(),
+                                          acceptanceDist->clone(),
+                                          numTemps % numStages,
+                                          numIterations),
+                                  solutions[i]);
+            }
+            for (auto &th: pool) {
+                th.join();
+            }
+            chooseBest(solution, solutions);
+            for (auto &each: solutions) {
+                each = solution->clone();
+            }
         }
     }
 };

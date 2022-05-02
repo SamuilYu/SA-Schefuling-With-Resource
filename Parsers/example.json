@@ -21,7 +21,7 @@
         "numTemps": 100,
         "numIterations": 100,
         "numThreads": 6,
-        "numStages": 5
+        "numStages": 1
       }
     }
   }
