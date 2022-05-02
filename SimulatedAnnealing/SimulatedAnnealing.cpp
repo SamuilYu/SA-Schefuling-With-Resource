@@ -7,45 +7,36 @@
 
 SimulatedAnnealing::SimulatedAnnealing(
         std::shared_ptr<CoolingSchedule> schedule,
-        const std::shared_ptr<TemperatureProvider>& temperatureProvider,
+        std::shared_ptr<TemperatureProvider> temperatureProvider,
         std:: shared_ptr<AcceptanceDistribution> acceptance,
         int numTemps,
         int numIterations
     ) {
     this -> numTemps = numTemps;
     this -> numIterations = numIterations;
-    initialTemp = temperatureProvider->getTemperature();
+    this -> temperatureProvider = std::move(temperatureProvider);
     coolingSchedule = std::move(schedule);
-    coolingSchedule -> setInitialTemperature(initialTemp);
     acceptanceDist = std::move(acceptance);
     finalTemp = 0.0001;
 }
 
-double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution, int cycles) {
-    double sum = 0;
-    double sums = 0;
-    int n = cycles;
-    for (int i = 0; i < n; i++) {
-        Anneal(solution);
-        auto error = solution -> GetError();
-        sum += error;
-        sums += error * error;
-        std::cout << "Did " << i << "th time: " << error << std::endl;
-    }
-    std::cout << sums / (n - 1) << std::endl << sum * sum / n / (n - 1) << std::endl  <<
-    sqrt(sums / (n - 1) - sum * sum / n / (n - 1)) / (sum / n) << std::endl;
+double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution) {
+    initialTemp = temperatureProvider->getTemperature();
+    coolingSchedule -> setInitialTemperature(initialTemp);
+    coolingSchedule -> restart();
+    solution->Initialize();
+    Anneal(solution);
     return solution->GetError();
 }
 
 double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
-    double error = solution->Initialize();
+    double error = solution->GetError();
     double newError;
     double maxError = error;
     double minError = error;
 
     auto wk1 = solution->clone();
     double temperature, deltaError;
-    coolingSchedule -> restart();
     for (int n = 0; n < numTemps; n++) {
         temperature = coolingSchedule->getNextTemperature();
         for (int i = 0; i < numIterations; i++) {
@@ -63,7 +54,7 @@ double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
             }
         }
     }
-    std::cout << "Min Error=" << minError << std::endl;
-    std::cout << "Max Error=" << maxError << std::endl;
+//    std::cout << "Min Error=" << minError << std::endl;
+//    std::cout << "Max Error=" << maxError << std::endl;
     return solution->GetError();
 }

@@ -50,15 +50,15 @@ private:
     std::shared_ptr<TemperatureProvider>
     parseTemperatureProvider(
         const boost::property_tree::basic_ptree<std::basic_string<char>, std::basic_string<char>>& ptree,
-        std::shared_ptr<Conditions> cond,
-        std::shared_ptr<Solution> solution
+        const std::shared_ptr<Conditions>& cond,
+        const std::shared_ptr<Solution>& solution
     ) {
         auto type = ptree.get<std::string>("type");
         if (type == "range") {
-            return tpFactory.create<std::shared_ptr<Conditions>>(type, cond);
+            return tpFactory.create<std::shared_ptr<Conditions>>(type, cond->clone());
         } else if (type == "statistical") {
             auto numOfRuns = ptree.get<int>("parameters.numOfRuns");
-            return tpFactory.create<std::shared_ptr<Solution>, int>(type, solution, numOfRuns);
+            return tpFactory.create<std::shared_ptr<Solution>, int>(type, solution->clone(), numOfRuns);
         }
         throw std::logic_error("Illegal argument for temperature provider");
     }
@@ -100,6 +100,9 @@ private:
         } else if (type == "decomposition") {
             auto numThreads = parameters.get<int>("numThreads");
             return std::make_shared<DecompositionParallelSA>(cs,tp,ad,numTemps,numIterations,numThreads);
+        } else if (type == "share") {
+            auto numThreads = parameters.get<int>("numThreads");
+            return std::make_shared<ParallelSAWithSharing>(cs,tp,ad,numTemps,numIterations,numThreads);
         }
         throw std::logic_error("Illegal argument for simulated annealing algorithm.");
     }

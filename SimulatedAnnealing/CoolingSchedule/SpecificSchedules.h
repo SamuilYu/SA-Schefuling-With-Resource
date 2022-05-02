@@ -23,7 +23,7 @@ public:
 
 public:
     void restart() override {
-        for (index; 1 < index; index--) {
+        for (; 1 < index; index--) {
             value = value / factor;
         }
     }

@@ -10,7 +10,7 @@ class SimulatedAnnealing {
 public:
     SimulatedAnnealing(
             std::shared_ptr<CoolingSchedule> schedule,
-            const std::shared_ptr<TemperatureProvider>& temperatureProvider,
+            std::shared_ptr<TemperatureProvider> temperatureProvider,
             std:: shared_ptr<AcceptanceDistribution> acceptance,
             int numTemps,
             int numIterations
@@ -20,12 +20,13 @@ public:
     int numTemps;
     int numIterations;
     double initialTemp;
-    virtual double Start(std::shared_ptr<Solution> solution, int cycles);
+    virtual double Start(std::shared_ptr<Solution> solution);
 
     double Anneal(std::shared_ptr<Solution> solution);
 
 protected:
     std::shared_ptr<CoolingSchedule> coolingSchedule;
+    std::shared_ptr<TemperatureProvider> temperatureProvider;
     std:: shared_ptr<AcceptanceDistribution> acceptanceDist;
     double finalTemp;
 };

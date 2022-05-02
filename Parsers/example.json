@@ -12,15 +12,15 @@
     "InitialTemperatureProvider": {
       "type": "statistical",
       "parameters": {
-        "numOfRuns": 1000
+        "numOfRuns": 100
       }
     },
     "Parallel": {
-      "type": "decomposition",
+      "type": "share",
       "parameters": {
         "numTemps": 100,
         "numIterations": 100,
-        "numThreads": 4
+        "numThreads": 6
       }
     }
   }

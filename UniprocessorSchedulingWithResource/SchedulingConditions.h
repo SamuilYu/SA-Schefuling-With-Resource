@@ -2,6 +2,7 @@
 #define SA_SCHEDULING_RESOURCES_SCHEDULINGCONDITIONS_H
 
 #include "../SimulatedAnnealing/Problem/Conditions.h"
+#include "boost/graph/copy.hpp"
 
 using DependencyGraph =
 boost::adjacency_list<
@@ -13,6 +14,10 @@ private:
     DependencyGraph g;
 public:
     explicit SchedulingConditions(const DependencyGraph &g) : g(g) {}
+
+    SchedulingConditions& operator=(const SchedulingConditions& other) {
+        this -> g = other.g;
+    }
 
     [[nodiscard]] const DependencyGraph& getDependencyGraph() const {
         return g;

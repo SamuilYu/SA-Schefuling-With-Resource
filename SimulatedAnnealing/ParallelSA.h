@@ -2,33 +2,35 @@
 #define SA_SCHEDULING_RESOURCES_PARALLELSA_H
 
 #include "SimulatedAnnealing.h"
+#include "float.h"
 #include "thread"
 
 class ParallelSA: public SimulatedAnnealing {
 protected:
     int numThreads;
-private:
     std::vector<std::thread> pool;
     std::vector<SimulatedAnnealing> algorithms;
 
     virtual std::vector<std::shared_ptr<Solution>> prepareSolutions(std::shared_ptr<Solution> solution) {
         std::vector<std::shared_ptr<Solution>> solutions;
-        for (int i = 0; i < numThreads && i < std::thread::hardware_concurrency(); i++) {
+        for (int i = 0; i < numThreads; i++) {
             auto current = solution->clone();
             solutions.push_back(current);
         }
         return solutions;
     }
 
-    virtual double run(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>> solutions) {
+    virtual void run(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>>& solutions) {
         for (int i = 0; i < numThreads; i++) {
-            pool.emplace_back(&SimulatedAnnealing::Anneal, algorithms[i], solutions[i]);
+            pool.emplace_back(&SimulatedAnnealing::Start, algorithms[i], solutions[i]);
         }
         for (auto &th: pool) {
             th.join();
         }
+    }
 
-        double minError = MAXFLOAT;
+    virtual double chooseBest(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>> solutions) {
+        auto minError = DBL_MAX;
         std::shared_ptr<Solution> minSolution;
         for (const auto& s: solutions) {
             auto newError = s->GetError();
@@ -63,14 +65,14 @@ public:
                     acceptance->clone(),
                     numTemps,
                     numIterations
-
             );
         }
     }
 
-    double Start(std::shared_ptr<Solution> solution, int cycles) override {
+    double Start(std::shared_ptr<Solution> solution) override {
         std::vector<std::shared_ptr<Solution>> solutions = prepareSolutions(solution);
-        return run(solution, solutions);
+        run(solution, solutions);
+        return chooseBest(solution, solutions);
     }
 };
 
@@ -84,6 +86,37 @@ public:
 
     std::vector<std::shared_ptr<Solution>> prepareSolutions(std::shared_ptr<Solution> solution) override {
         return solution->breakScope(numThreads);
+    }
+};
+
+class ParallelSAWithSharing: public ParallelSA {
+private:
+    int actualNumTemps;
+public:
+    ParallelSAWithSharing(const std::shared_ptr<CoolingSchedule> &schedule,
+                            const std::shared_ptr<TemperatureProvider> &temperatureProvider,
+                            const std::shared_ptr<AcceptanceDistribution> &acceptance, int numTemps, int numIterations,
+                            int numThreads) : ParallelSA(schedule, temperatureProvider, acceptance, 1,
+                                                         numIterations, numThreads) {
+        actualNumTemps =  numTemps;
+    }
+
+protected:
+    void run(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>>& solutions) override {
+        ParallelSA::run(solution, solutions);
+        for (int j = 0; j < actualNumTemps; j++) {
+            pool.clear();
+            for (int i = 0; i < numThreads; i++) {
+                pool.emplace_back(&SimulatedAnnealing::Anneal, algorithms[i], solutions[i]);
+            }
+            for (auto &th: pool) {
+                th.join();
+            }
+            chooseBest(solution, solutions);
+            for (auto &each: solutions) {
+                each = solution->clone();
+            }
+        }
     }
 };
 
