@@ -92,19 +92,22 @@ public:
 class ParallelSAWithSharing: public ParallelSA {
 private:
     int actualNumTemps;
+    int numStages;
 public:
+
     ParallelSAWithSharing(const std::shared_ptr<CoolingSchedule> &schedule,
                             const std::shared_ptr<TemperatureProvider> &temperatureProvider,
                             const std::shared_ptr<AcceptanceDistribution> &acceptance, int numTemps, int numIterations,
-                            int numThreads) : ParallelSA(schedule, temperatureProvider, acceptance, 1,
+                            int numThreads, int numStages) : ParallelSA(schedule, temperatureProvider, acceptance, numTemps/numStages,
                                                          numIterations, numThreads) {
         actualNumTemps =  numTemps;
+        this -> numStages = numStages;
     }
-
 protected:
+
     void run(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>>& solutions) override {
         ParallelSA::run(solution, solutions);
-        for (int j = 0; j < actualNumTemps; j++) {
+        for (int j = 0; j < numStages - 2; j++) {
             pool.clear();
             for (int i = 0; i < numThreads; i++) {
                 pool.emplace_back(&SimulatedAnnealing::Anneal, algorithms[i], solutions[i]);
@@ -116,6 +119,24 @@ protected:
             for (auto &each: solutions) {
                 each = solution->clone();
             }
+        }
+        pool.clear();
+        for (int i = 0; i < numThreads; i++) {
+            pool.emplace_back(&SimulatedAnnealing::Anneal,
+                              SimulatedAnnealing(
+                                      coolingSchedule->clone(),
+                                      temperatureProvider->clone(),
+                                      acceptanceDist->clone(),
+                                      numTemps % numStages,
+                                      numIterations),
+                              solutions[i]);
+        }
+        for (auto &th: pool) {
+            th.join();
+        }
+        chooseBest(solution, solutions);
+        for (auto &each: solutions) {
+            each = solution->clone();
         }
     }
 };

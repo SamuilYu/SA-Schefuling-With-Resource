@@ -102,7 +102,8 @@ private:
             return std::make_shared<DecompositionParallelSA>(cs,tp,ad,numTemps,numIterations,numThreads);
         } else if (type == "share") {
             auto numThreads = parameters.get<int>("numThreads");
-            return std::make_shared<ParallelSAWithSharing>(cs,tp,ad,numTemps,numIterations,numThreads);
+            auto numStages = parameters.get<int>("numStages");
+            return std::make_shared<ParallelSAWithSharing>(cs,tp,ad,numTemps,numIterations,numThreads,numStages);
         }
         throw std::logic_error("Illegal argument for simulated annealing algorithm.");
     }

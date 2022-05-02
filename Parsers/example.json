@@ -20,7 +20,8 @@
       "parameters": {
         "numTemps": 100,
         "numIterations": 100,
-        "numThreads": 6
+        "numThreads": 6,
+        "numStages": 5
       }
     }
   }
