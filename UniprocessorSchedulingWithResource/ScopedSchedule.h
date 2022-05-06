@@ -177,9 +177,7 @@ private:
         int index = 0;
         for (auto each: value) {
             resultsUsed.emplace_back(resultsUsed[index]);
-            if (!adjacentUnvisited[each].empty()) {
-                resultsUsed[index + 1].insert(each);
-            }
+            resultsUsed[index + 1].insert(each);
             for (const auto& entry: adjacentUnvisited) {
                 adjacentUnvisited[entry.first].erase(each);
                 if (adjacentUnvisited[entry.first].empty()) {
