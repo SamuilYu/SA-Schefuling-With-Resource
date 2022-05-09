@@ -3,6 +3,7 @@
 
 #include "cmath"
 #include "random"
+#include "stdexcept"
 
 class AcceptanceDistribution {
 protected:
@@ -14,55 +15,58 @@ protected:
     }
 
 public:
-    virtual bool isAccepted(double temperature, double deltaError) = 0;
+    virtual double getProbability(double temperature, double deltaError)=0;
+    virtual bool isAccepted(double temperature, double deltaError) {
+        return Random(0.0, 1.0) <= this -> getProbability(temperature, deltaError);
+    };
     virtual std::shared_ptr<AcceptanceDistribution> clone() = 0;
 
 };
 
-class OneWingDistribution : public AcceptanceDistribution {
-private:
-    double threshold;
+class MetropolisDistribution : public AcceptanceDistribution {
 public:
-    OneWingDistribution(double threshold) {
-        if (threshold > 1.0 || threshold < 0.0) {
-            throw std::logic_error("Illegal threshold for probability.");
-        }
-        this->threshold = threshold;
-    }
-
-    bool isAccepted(double temperature, double deltaError) override {
-        if (deltaError <= 0) return true;
-        return Random(0.0, 1.0) < exp(log(threshold) * deltaError / temperature);
+    double getProbability(double temperature, double deltaError) override {
+        if (deltaError <= 0) return 1.0;
+        return exp(deltaError / temperature);
     }
 
     std::shared_ptr<AcceptanceDistribution> clone() override {
-        return std::make_shared<OneWingDistribution>(threshold);
+        return std::make_shared<MetropolisDistribution>();
     }
 };
 
-class TwoWingDistribution : public AcceptanceDistribution {
+class HastingsDistribution: public AcceptanceDistribution {
 private:
-    double improvementThreshold;
-    double deteriorationThreshold;
+    double gamma;
 public:
-    TwoWingDistribution(double threshold1, double threshold2) {
-        if (threshold1 > 1.0 || threshold1 < 0.0 || threshold2 > 1.0 || threshold2 < 0.0) {
-            throw std::logic_error("Illegal threshold for probability.");
+    HastingsDistribution(double gamma) : gamma(gamma) {
+        if (gamma < 1.0) {
+            throw new std::logic_error("Bad value for gamma in Hastings criterion");
         }
-        this->improvementThreshold = threshold1;
-        this->deteriorationThreshold = threshold2;
     }
 
-    bool isAccepted(double temperature, double deltaError) override {
-        double random = Random(0.0, 1.0);
-        if (deltaError <= 0) {
-            return random < 1 - exp(-log(1 - improvementThreshold) * deltaError / temperature);
-        }
-        return random < exp(log(deteriorationThreshold) * deltaError / temperature);
+    double getProbability(double temperature, double deltaError) override {
+        double pi_ij = exp(deltaError/temperature);
+        double pi_ji = exp(-deltaError/temperature);
+        return (1 + 2 * pow(0.5*std::min(pi_ij, pi_ji), gamma))/(1+pi_ij);
     }
 
     std::shared_ptr<AcceptanceDistribution> clone() override {
-        return std::make_shared<TwoWingDistribution>(improvementThreshold, deteriorationThreshold);
+        return std::make_shared<HastingsDistribution>(gamma);
+    }
+};
+
+class BarkerDistribution: public AcceptanceDistribution {
+public:
+    BarkerDistribution() = default;
+
+    double getProbability(double temperature, double deltaError) override {
+        double pi_ij = exp(deltaError/temperature);
+        return 1/(1+pi_ij);
+    }
+
+    std::shared_ptr<AcceptanceDistribution> clone() override {
+        return std::make_shared<BarkerDistribution>();
     }
 };
 

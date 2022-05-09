@@ -1,8 +1,9 @@
 #ifndef SA_SCHEDULING_RESOURCES_DEPENDENCYGRAPHPARSER_H
 #define SA_SCHEDULING_RESOURCES_DEPENDENCYGRAPHPARSER_H
 
+#include <boost/property_map/dynamic_property_map.hpp>
 #include "fstream"
-#include "boost/graph/graphml.hpp"
+#include "boost/graph/adjacency_list.hpp"
 #include "../UniprocessorSchedulingWithResource/SchedulingConditions.h"
 
 class DependencyGraphParser {

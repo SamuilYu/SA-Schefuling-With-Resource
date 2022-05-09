@@ -11,8 +11,6 @@
 namespace Factories {
     template<> template<> Factory<CoolingSchedule>::Registered<> Factory<CoolingSchedule>::registered<> = {};
     template<> template<> Factory<CoolingSchedule>::Registered<double> Factory<CoolingSchedule>::registered<double> = {};
-    template<> template<> Factory<AcceptanceDistribution>::Registered<double, double> Factory<AcceptanceDistribution>::registered<double, double> = {};
-    template<> template<> Factory<AcceptanceDistribution>::Registered<double> Factory<AcceptanceDistribution>::registered<double> = {};
     template<> template<> Factory<TemperatureProvider>::Registered<std::shared_ptr<Conditions>> Factory<TemperatureProvider>::registered<std::shared_ptr<Conditions>> = {};
     template<> template<> Factory<TemperatureProvider>::Registered<std::shared_ptr<Solution>, int> Factory<TemperatureProvider>::registered<std::shared_ptr<Solution>, int> = {};
 
@@ -31,17 +29,17 @@ namespace Factories {
     public:
         TemperatureProviderFactory() {
             registered<std::shared_ptr<Conditions>>["range"] = std::make_shared<Creator<RangeBasedTemperatureProvider, std::shared_ptr<Conditions>>>();
-            registered<std::shared_ptr<Solution>, int>["statistical"] = std::make_shared<Creator<StatisticalTemperatureProvider, std::shared_ptr<Solution>, int>>();
+//            registered<std::shared_ptr<Solution>, int>["statistical"] = std::make_shared<Creator<StatisticalTemperatureProvider, std::shared_ptr<Solution>, int>>();
         }
     };
-
-    class AcceptanceDistributionFactory: public Factory<AcceptanceDistribution> {
-    public:
-        AcceptanceDistributionFactory() {
-            registered<double>["one-wing"] = std::make_shared<Creator<OneWingDistribution, double>>();
-            registered<double, double>["two-wing"] = std::make_shared<Creator<TwoWingDistribution, double, double>>();
-        }
-    };
+//
+//    class AcceptanceDistributionFactory: public Factory<AcceptanceDistribution> {
+//    public:
+//        AcceptanceDistributionFactory() {
+//            registered<double>["one-wing"] = std::make_shared<Creator<OneWingDistribution, double>>();
+//            registered<double, double>["two-wing"] = std::make_shared<Creator<TwoWingDistribution, double, double>>();
+//        }
+//    };
 
 }
 

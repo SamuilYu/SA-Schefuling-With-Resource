@@ -32,7 +32,7 @@ class ParametersParser {
 private:
     Factories::CoolingScheduleFactory csFactory = Factories::CoolingScheduleFactory();
     Factories::TemperatureProviderFactory tpFactory = Factories::TemperatureProviderFactory();
-    Factories::AcceptanceDistributionFactory adFactory = Factories::AcceptanceDistributionFactory();
+//    Factories::AcceptanceDistributionFactory adFactory = Factories::AcceptanceDistributionFactory();
 
     std::shared_ptr<CoolingSchedule>
     parseCoolingSchedule(
@@ -51,14 +51,16 @@ private:
     parseTemperatureProvider(
         const boost::property_tree::basic_ptree<std::basic_string<char>, std::basic_string<char>>& ptree,
         const std::shared_ptr<Conditions>& cond,
-        const std::shared_ptr<Solution>& solution
+        const std::shared_ptr<Solution>& solution,
+        const std::shared_ptr<AcceptanceDistribution>& dist
     ) {
         auto type = ptree.get<std::string>("type");
         if (type == "range") {
             return tpFactory.create<std::shared_ptr<Conditions>>(type, cond->clone());
         } else if (type == "statistical") {
             auto numOfRuns = ptree.get<int>("parameters.numOfRuns");
-            return tpFactory.create<std::shared_ptr<Solution>, int>(type, solution->clone(), numOfRuns);
+            auto threshold = ptree.get<double>("parameters.threshold");
+            return std::make_shared<StatisticalTemperatureProvider>(solution->clone(), dist -> clone(), threshold, numOfRuns);
         }
         throw std::logic_error("Illegal argument for temperature provider");
     }
@@ -69,14 +71,13 @@ private:
     ) {
         auto type = ptree.get<std::string>("type");
         auto parameters = ptree.get_child("parameters");
-        if (type == "one-wing") {
-            auto threshold = parameters.get<double>("threshold");
-            return adFactory.create<double>(type, threshold);
-        } else if (type == "two-wing") {
-            auto deteriorationThreshold = parameters.get<double>("deteriorationThreshold");
-            auto improvementThreshold = parameters.get<double>("improvementThreshold");
-            return adFactory.create<double, double>(type, improvementThreshold, deteriorationThreshold);
-        }
+        if (type == "metropolis") {
+            return std::make_shared<MetropolisDistribution>();
+        } else if (type == "hastings") {
+            auto gamma = parameters.get<double>("gamma");
+            return std::make_shared<HastingsDistribution>(gamma);
+        } else if (type == "barker") {
+            return std::make_shared<BarkerDistribution>();
         throw std::logic_error("Illegal argument for acceptance distribution");
     }
 
@@ -117,8 +118,8 @@ public:
         auto acceptanceDistributionConfig = pt.get_child("SimulatedAnnealingParameters.AcceptanceDistribution");
         auto simulatedAnnealingConfig = pt.get_child("SimulatedAnnealingParameters.Parallel");
         auto cs = parseCoolingSchedule(coolingScheduleConfig);
-        auto tp = parseTemperatureProvider(temperatureProviderConfig, cond, solution);
         auto ad = parseAcceptanceDistribution(acceptanceDistributionConfig);
+        auto tp = parseTemperatureProvider(temperatureProviderConfig, cond, solution, ad);
         auto sa = parseSimulatedAnnealing(simulatedAnnealingConfig, cs, tp, ad);
         return sa;
     }

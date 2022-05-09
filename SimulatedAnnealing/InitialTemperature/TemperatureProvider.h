@@ -5,8 +5,9 @@
 
 #include "../Problem/Solution.h"
 #include "../Problem/Conditions.h"
+#include "../AcceptanceDistribution/AcceptanceDistribution.h"
 #include "stdexcept"
-#include "math.h"
+#include <cmath>
 
 class TemperatureProvider {
 public:
@@ -17,33 +18,51 @@ public:
 class StatisticalTemperatureProvider : public TemperatureProvider {
 private:
     std::shared_ptr<Solution> solution;
+    std::shared_ptr<AcceptanceDistribution> dist;
+    double threshold;
     int N;
 public:
     StatisticalTemperatureProvider(
             std::shared_ptr<Solution> solution,
+            std::shared_ptr<AcceptanceDistribution> dist,
+            double threshold,
             int n
-    ) {
+    ): threshold(threshold), N(n) {
+        if (threshold > 1.0 || threshold < 0.0) {
+            throw std::logic_error("Invalid threshold");
+        }
         this->solution = std::move(solution);
-        this->N = n;
+        this -> dist = std::move(dist);
     }
 
     double getTemperature() override {
-        double E = 1.0;
+        double E;
+        double prevE;
         double sum = 0.0;
-        double sums = 0.0;
-        double seed = 1000.0;
-        solution -> Initialize();
-        for (int i = 0; i < N; i++) {
-            E = solution->Perturb(seed, seed);
-            sum += E;
-            sums += (E * E);
+        prevE = solution -> Initialize();
+        double result = 0.01;
+        int count = N;
+        double delta = 0.0;
+        while (threshold > sum/count || count == 0) {
+            sum = 0.0;
+            count = 0;
+            for (int i = 0; i < N; i++) {
+                E = solution->Perturb(result, result);
+                if (E > prevE) {
+                    delta = E-prevE;
+                    sum += dist->getProbability(result, delta);
+                    count++;
+                }
+                prevE = E;
+            }
+            result += delta;
         }
-        double variance = sums / (N - 1) - (sum * sum) / (N * (N - 1));
-        return sqrt(variance);
+
+        return result;
     }
 
     std::shared_ptr<TemperatureProvider> clone() override {
-        return std::make_shared<StatisticalTemperatureProvider>(solution->clone(), N);
+        return std::make_shared<StatisticalTemperatureProvider>(solution->clone(), dist->clone(), threshold, N);
     }
 };
 
@@ -58,9 +77,8 @@ public:
     }
 
     double getTemperature() override {
-        double max = conditions->estimateMax();
-        double min = conditions->estimateMin();
-        return -(max - min);
+        double delta = conditions -> estimateMaxDelta();
+        return delta;
     }
 
     std::shared_ptr<TemperatureProvider> clone() override {

@@ -44,6 +44,18 @@ public:
         return max;
     }
 
+    double estimateMaxDelta() override {
+        auto max = boost::get(boost::vertex_potential_t(), g, *(vertices(g).first));
+        boost::graph_traits<DependencyGraph>::vertex_iterator v, v_end;
+        for (std::tie(v, v_end) = vertices(g); v != v_end; v++) {
+            auto cur = boost::get(boost::vertex_potential_t(), g, *v);
+            if (max < cur) {
+                max = cur;
+            }
+        }
+        return max;
+    }
+
     std::shared_ptr<Conditions> clone() override {
         return std::make_shared<SchedulingConditions>(g);
     }

@@ -4,19 +4,17 @@
       "type": "boltzmann"
     },
     "AcceptanceDistribution": {
-      "type": "one-wing",
-      "parameters": {
-        "threshold": 0.8
-      }
+      "type": "metropolis"
     },
     "InitialTemperatureProvider": {
       "type": "statistical",
       "parameters": {
-        "numOfRuns": 100
+        "threshold": 0.8,
+        "numOfRuns": 10
       }
     },
     "Parallel": {
-      "type": "share",
+      "type": "no",
       "parameters": {
         "numTemps": 100,
         "numIterations": 100,
