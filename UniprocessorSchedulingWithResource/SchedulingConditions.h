@@ -17,6 +17,7 @@ public:
 
     SchedulingConditions& operator=(const SchedulingConditions& other) {
         this -> g = other.g;
+        return *this;
     }
 
     [[nodiscard]] const DependencyGraph& getDependencyGraph() const {
