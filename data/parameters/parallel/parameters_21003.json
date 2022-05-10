@@ -1,0 +1,1 @@
+{"SimulatedAnnealingParameters": {"CoolingSchedule": {"type": "geometric", "parameters": {"factor": 0.35}}, "AcceptanceDistribution": {"type": "barker"}, "InitialTemperatureProvider": {"type": "statistical", "parameters": {"numOfRuns": 10, "threshold": 0.95}}, "Parallel": {"type": "no", "parameters": {"numIterations": 560}}}}

@@ -1,0 +1,1 @@
+{"SimulatedAnnealingParameters": {"CoolingSchedule": {"type": "cauchy"}, "AcceptanceDistribution": {"type": "metropolis"}, "InitialTemperatureProvider": {"type": "statistical", "parameters": {"numOfRuns": 1000, "threshold": 0.9}}, "Parallel": {"type": "no", "parameters": {"numIterations": 10}}}}
