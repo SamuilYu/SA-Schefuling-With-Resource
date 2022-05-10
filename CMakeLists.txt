@@ -26,7 +26,7 @@ file(GLOB SOURCES SimulatedAnnealing/*.cpp SimulatedAnnealing/*.h
         SimulatedAnnealing/*/*.h SimulatedAnnealing/*/*.cpp Parsers/*.cpp Parsers/*.h
         UniprocessorSchedulingWithResource/*.cpp UniprocessorSchedulingWithResource/*.h)
 add_executable(${PROJECT_NAME} main.cpp ${SOURCES})
-set(BOOST_INCLUDEDIR "C:/Program Files (x86)/boost_1_79_0/boost_1_79_0")
+#set(BOOST_INCLUDEDIR "C:/Program Files (x86)/boost_1_79_0/boost_1_79_0")
 find_package(Boost 1.79)
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})

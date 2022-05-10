@@ -70,14 +70,15 @@ private:
         const boost::property_tree::basic_ptree<std::basic_string<char>, std::basic_string<char>>& ptree
     ) {
         auto type = ptree.get<std::string>("type");
-        auto parameters = ptree.get_child("parameters");
         if (type == "metropolis") {
             return std::make_shared<MetropolisDistribution>();
         } else if (type == "hastings") {
+            auto parameters = ptree.get_child("parameters");
             auto gamma = parameters.get<double>("gamma");
             return std::make_shared<HastingsDistribution>(gamma);
         } else if (type == "barker") {
             return std::make_shared<BarkerDistribution>();
+        }
         throw std::logic_error("Illegal argument for acceptance distribution");
     }
 

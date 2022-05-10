@@ -40,7 +40,7 @@ public:
         double prevE;
         double sum = 0.0;
         prevE = solution -> Initialize();
-        double result = 0.01;
+        double result = 1.0;
         int count = N;
         double delta = 0.0;
         while (threshold > sum/count || count == 0) {
