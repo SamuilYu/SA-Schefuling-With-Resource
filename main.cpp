@@ -13,7 +13,10 @@ int main() {
     auto sa = ParametersParser().parse("C:\\Users\\samyu\\CLionProjects\\SA-Schefuling-With-Resource/data/parameters/parameters_0.json", cond, probe);
 
     auto schedule = std::make_shared<Schedule>(*cond);
+    auto begin = std::chrono::steady_clock::now();
     auto answer = sa->Start(schedule);
+    auto end = std::chrono::steady_clock::now();
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
     for (auto each: schedule->getValue()) {
         std::cout << each << " ";
     }
