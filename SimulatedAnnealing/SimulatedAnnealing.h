@@ -12,23 +12,23 @@ public:
             std::shared_ptr<CoolingSchedule> schedule,
             std::shared_ptr<TemperatureProvider> temperatureProvider,
             std:: shared_ptr<AcceptanceDistribution> acceptance,
-            int numTemps,
-            int numIterations
+            int, int
     );
 
     ~SimulatedAnnealing() = default;
-    int numTemps;
-    int numIterations;
-    double initialTemp;
     virtual double Start(std::shared_ptr<Solution> solution);
-
     double Anneal(std::shared_ptr<Solution> solution);
 
+    int numPruning;
+    int iterationsWithoutImprovement;
 protected:
+    double minError;
+    double initialTemp;
+    int numImprovement;
+    int numIterations;
     std::shared_ptr<CoolingSchedule> coolingSchedule;
     std::shared_ptr<TemperatureProvider> temperatureProvider;
     std:: shared_ptr<AcceptanceDistribution> acceptanceDist;
-    double finalTemp;
 };
 
 

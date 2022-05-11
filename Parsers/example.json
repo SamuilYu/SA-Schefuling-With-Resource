@@ -7,15 +7,18 @@
       "type": "metropolis"
     },
     "InitialTemperatureProvider": {
-      "type": "range"
+      "type": "statistical",
+      "parameters": {
+        "threshold": 0.8,
+        "numOfRuns": 10
+      }
     },
     "Parallel": {
-      "type": "no",
+      "type": "prune",
       "parameters": {
-        "numTemps": 100,
-        "numIterations": 1000,
-        "numThreads": 6,
-        "numStages": 3
+        "numImprovement": 20000,
+        "numPruning": 1000,
+        "numThreads": 6
       }
     }
   }

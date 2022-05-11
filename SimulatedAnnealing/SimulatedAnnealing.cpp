@@ -9,22 +9,24 @@ SimulatedAnnealing::SimulatedAnnealing(
         std::shared_ptr<CoolingSchedule> schedule,
         std::shared_ptr<TemperatureProvider> temperatureProvider,
         std:: shared_ptr<AcceptanceDistribution> acceptance,
-        int numTemps,
-        int numIterations
+        int numImprovement, int numPruning
     ) {
-    this -> numTemps = numTemps;
-    this -> numIterations = numIterations;
+    this -> numImprovement = numImprovement;
+    this -> numIterations = 1000;
     this -> temperatureProvider = std::move(temperatureProvider);
+    this -> numPruning = numPruning;
     coolingSchedule = std::move(schedule);
     acceptanceDist = std::move(acceptance);
-    finalTemp = 0.0001;
 }
 
 double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution) {
     initialTemp = temperatureProvider->getTemperature();
     coolingSchedule -> setInitialTemperature(initialTemp);
     coolingSchedule -> restart();
+    iterationsWithoutImprovement = 0;
     solution->Initialize();
+    double error = solution->GetError();
+    minError = error;
     Anneal(solution);
     return solution->GetError();
 }
@@ -32,29 +34,38 @@ double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution) {
 double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
     double error = solution->GetError();
     double newError;
-    double maxError = error;
-    double minError = error;
+    int totalIterations = 0;
 
     auto wk1 = solution->clone();
     double temperature, deltaError;
-    for (int n = 0; n < numTemps; n++) {
+    while (true) {
         temperature = coolingSchedule->getNextTemperature();
         for (int i = 0; i < numIterations; i++) {
             newError = wk1->Perturb(temperature, initialTemp);
             deltaError = newError - error;
+            if ((newError - minError)/minError > -0.01) {
+                iterationsWithoutImprovement++;
+            } else {
+                iterationsWithoutImprovement = 0;
+            }
             if (acceptanceDist -> isAccepted(temperature, deltaError)) {
                 error = newError;
                 if (error < minError) {
                     (*solution) = (*wk1);
                     minError = error;
+                    std::cout << "Accepted better" << std::endl;
                 }
-                maxError = error > maxError ? error: maxError;
             } else {
                 wk1 -> SetPrevious();
             }
+            totalIterations++;
+            if (iterationsWithoutImprovement >= numImprovement || totalIterations == numPruning) {
+                break;
+            }
+        }
+        if (iterationsWithoutImprovement >= numImprovement || totalIterations == numPruning) {
+            break;
         }
     }
-//    std::cout << "Min Error=" << minError << std::endl;
-//    std::cout << "Max Error=" << maxError << std::endl;
     return solution->GetError();
 }

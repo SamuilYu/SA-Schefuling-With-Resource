@@ -91,21 +91,20 @@ private:
     ) {
         auto type = ptree.get<std::string>("type");
         auto parameters = ptree.get_child("parameters");
-        auto numTemps = parameters.get<int>("numTemps");
 
-        auto numIterations = parameters.get<int>("numIterations");
+        auto numImprovement = parameters.get<int>("numImprovement");
         if (type == "no") {
-            return std::make_shared<SimulatedAnnealing>(cs,tp,ad,numTemps,numIterations);
+            return std::make_shared<SimulatedAnnealing>(cs,tp,ad,numImprovement, 0);
         } else if (type == "multi") {
             auto numThreads = parameters.get<int>("numThreads");
-            return std::make_shared<ParallelSA>(cs,tp,ad,numTemps,numIterations,numThreads);
+            return std::make_shared<ParallelSA>(cs,tp,ad,numImprovement,numThreads);
         } else if (type == "decomposition") {
             auto numThreads = parameters.get<int>("numThreads");
-            return std::make_shared<DecompositionParallelSA>(cs,tp,ad,numTemps,numIterations,numThreads);
-        } else if (type == "share") {
+            return std::make_shared<DecompositionParallelSA>(cs,tp,ad,numImprovement,numThreads);
+        } else if (type == "prune") {
             auto numThreads = parameters.get<int>("numThreads");
-            auto numStages = parameters.get<int>("numStages");
-            return std::make_shared<ParallelSAWithSharing>(cs,tp,ad,numTemps,numIterations,numThreads,numStages);
+            auto numPruning = parameters.get<int>("numPruning");
+            return std::make_shared<ParallelSAWithPruning>(cs, tp, ad, numImprovement, numPruning, numThreads);
         }
         throw std::logic_error("Illegal argument for simulated annealing algorithm.");
     }

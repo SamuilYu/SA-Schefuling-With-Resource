@@ -7,14 +7,18 @@
 
 class AcceptanceDistribution {
 protected:
-    static double Random(double a, double b) {
-        std::random_device rd;
-        std::mt19937 mt(rd());
+    std::mt19937 mt;
+    double Random(double a, double b) {
+
         std::uniform_real_distribution<double> dist(a, b);
         return dist(mt);
     }
 
 public:
+    AcceptanceDistribution() {
+        std::random_device rd;
+        mt = std::mt19937(rd());
+    }
     virtual double getProbability(double temperature, double deltaError)=0;
     virtual bool isAccepted(double temperature, double deltaError) {
         return Random(0.0, 1.0) <= this -> getProbability(temperature, deltaError);
@@ -27,7 +31,7 @@ class MetropolisDistribution : public AcceptanceDistribution {
 public:
     double getProbability(double temperature, double deltaError) override {
         if (deltaError <= 0) return 1.0;
-        return exp(deltaError / temperature);
+        return exp(-deltaError / temperature);
     }
 
     std::shared_ptr<AcceptanceDistribution> clone() override {
@@ -39,7 +43,7 @@ class HastingsDistribution: public AcceptanceDistribution {
 private:
     double gamma;
 public:
-    HastingsDistribution(double gamma) : gamma(gamma) {
+    HastingsDistribution(double gamma) : AcceptanceDistribution(), gamma(gamma) {
         if (gamma < 1.0) {
             throw new std::logic_error("Bad value for gamma in Hastings criterion");
         }

@@ -4,6 +4,7 @@
 #include "SimulatedAnnealing.h"
 #include "float.h"
 #include "thread"
+#include "algorithm"
 
 class ParallelSA: public SimulatedAnnealing {
 protected:
@@ -29,7 +30,7 @@ protected:
         }
     }
 
-    virtual double chooseBest(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>> solutions) {
+    virtual std::shared_ptr<Solution> chooseBest(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>> solutions) {
         auto minError = DBL_MAX;
         std::shared_ptr<Solution> minSolution;
         for (const auto& s: solutions) {
@@ -40,31 +41,29 @@ protected:
             }
         }
         (*solution) = (*minSolution);
-        return minError;
+        return minSolution;
     }
 public:
     ParallelSA(
             std::shared_ptr<CoolingSchedule> schedule,
             std::shared_ptr<TemperatureProvider> temperatureProvider,
             std::shared_ptr<AcceptanceDistribution> acceptance,
-            int numTemps,
-            int numIterations,
+            int numImprovement,
             int numThreads
     ) : SimulatedAnnealing(
             schedule,
             temperatureProvider,
             acceptance,
-            numTemps,
-            numIterations
+            numImprovement, 0
     ) {
-        this->numThreads = std::min(numThreads, int(std::thread::hardware_concurrency()));
+        this->numThreads = numThreads;
         for (int i = 0; i < this->numThreads; i++) {
             algorithms.emplace_back(
                     schedule->clone(),
                     temperatureProvider->clone(),
                     acceptance->clone(),
-                    numTemps,
-                    numIterations
+                    numImprovement,
+                    0
             );
         }
     }
@@ -72,7 +71,8 @@ public:
     double Start(std::shared_ptr<Solution> solution) override {
         std::vector<std::shared_ptr<Solution>> solutions = prepareSolutions(solution);
         run(solution, solutions);
-        return chooseBest(solution, solutions);
+        chooseBest(solution, solutions);
+        return solution->GetError();
     }
 };
 
@@ -80,64 +80,80 @@ class DecompositionParallelSA: public ParallelSA {
 public:
     DecompositionParallelSA(const std::shared_ptr<CoolingSchedule> &schedule,
                             const std::shared_ptr<TemperatureProvider> &temperatureProvider,
-                            const std::shared_ptr<AcceptanceDistribution> &acceptance, int numTemps, int numIterations,
-                            int numThreads) : ParallelSA(schedule, temperatureProvider, acceptance, numTemps,
-                                                         numIterations, numThreads) {}
+                            const std::shared_ptr<AcceptanceDistribution> &acceptance, int numImprovement,
+                            int numThreads) : ParallelSA(schedule, temperatureProvider, acceptance,
+                                                         numImprovement, numThreads) {}
 
     std::vector<std::shared_ptr<Solution>> prepareSolutions(std::shared_ptr<Solution> solution) override {
         return solution->breakScope(numThreads);
     }
 };
 
-class ParallelSAWithSharing: public ParallelSA {
+class ParallelSAWithPruning: public DecompositionParallelSA {
 private:
-    int actualNumTemps;
-    int numStages;
+    int numPruning;
 public:
 
-    ParallelSAWithSharing(const std::shared_ptr<CoolingSchedule> &schedule,
-                            const std::shared_ptr<TemperatureProvider> &temperatureProvider,
-                            const std::shared_ptr<AcceptanceDistribution> &acceptance, int numTemps, int numIterations,
-                            int numThreads, int numStages) : ParallelSA(schedule, temperatureProvider, acceptance, numTemps/numStages,
-                                                         numIterations, numThreads) {
-        actualNumTemps =  numTemps;
-        this -> numStages = numStages;
+    ParallelSAWithPruning(const std::shared_ptr<CoolingSchedule> &schedule,
+                          const std::shared_ptr<TemperatureProvider> &temperatureProvider,
+                          const std::shared_ptr<AcceptanceDistribution> &acceptance,
+                          int numImprovement,
+                          int numPruning,
+                          int numThreads) : DecompositionParallelSA(schedule, temperatureProvider, acceptance,
+                                                         numImprovement, numThreads) {
+        this -> numPruning = numPruning;
+        for (auto& algorithm: algorithms) {
+            algorithm.numPruning = numPruning;
+        }
     }
 protected:
 
     void run(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>>& solutions) override {
+        std::shared_ptr<Solution> withoutImprovement = nullptr;
         ParallelSA::run(solution, solutions);
-        for (int j = 0; j < numStages - 2; j++) {
+        double bestError;
+        while (true) {
+            std::vector<std::shared_ptr<Solution>> v(solutions);
+            if (withoutImprovement != nullptr) {
+                v.push_back(withoutImprovement);
+            }
+            auto best = chooseBest(solution, v);
+            bestError = solution->GetError();
+
+            if (withoutImprovement != best) {
+                withoutImprovement = nullptr;
+            }
+
+            auto iter = solutions.begin();
+            if ((iter = std::find(solutions.begin(), solutions.end(), best)) != solutions.end()) {
+                if (algorithms[iter - solutions.begin()].iterationsWithoutImprovement == numImprovement) {
+                    withoutImprovement = best;
+                }
+            }
+
+            std::vector<std::shared_ptr<Solution>> newSolutions = {};
+            std::vector<SimulatedAnnealing> newAlgorithms = {};
+            for (int i = 0; i < solutions.size(); i++) {
+                auto anotherError = solutions[i]->GetError();
+                if ((anotherError - bestError)/bestError < 0.1) {
+                    if (algorithms[i].iterationsWithoutImprovement != numImprovement) {
+                        std::cout << algorithms[i].iterationsWithoutImprovement << std::endl;
+                        newSolutions.push_back(solutions[i]);
+                        newAlgorithms.push_back(algorithms[i]);
+                    }
+                }
+            }
+            solutions = newSolutions;
+            algorithms = newAlgorithms;
+            if (solutions.empty()) {
+                break;
+            }
             pool.clear();
-            for (int i = 0; i < numThreads; i++) {
+            for (int i = 0; i < algorithms.size(); i++) {
                 pool.emplace_back(&SimulatedAnnealing::Anneal, algorithms[i], solutions[i]);
             }
             for (auto &th: pool) {
                 th.join();
-            }
-            chooseBest(solution, solutions);
-            for (auto &each: solutions) {
-                each = solution->clone();
-            }
-        }
-        if (numTemps % numStages != 0) {
-            pool.clear();
-            for (int i = 0; i < numThreads; i++) {
-                pool.emplace_back(&SimulatedAnnealing::Anneal,
-                                  SimulatedAnnealing(
-                                          coolingSchedule->clone(),
-                                          temperatureProvider->clone(),
-                                          acceptanceDist->clone(),
-                                          numTemps % numStages,
-                                          numIterations),
-                                  solutions[i]);
-            }
-            for (auto &th: pool) {
-                th.join();
-            }
-            chooseBest(solution, solutions);
-            for (auto &each: solutions) {
-                each = solution->clone();
             }
         }
     }

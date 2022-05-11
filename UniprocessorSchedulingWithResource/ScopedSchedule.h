@@ -32,9 +32,13 @@ private:
     std::vector<int> previousValue;
     SchedulingConditions conditions;
     SchedulingConditions scope;
+    std::mt19937 mt;
 public:
     explicit ScopedSchedule(const SchedulingConditions& conditions, const SchedulingConditions& scope) :
-    conditions(conditions), scope(scope) {}
+    conditions(conditions), scope(scope) {
+        std::random_device rd;
+        mt = std::mt19937(rd());
+    }
 
 
     ScopedSchedule& operator=(const ScopedSchedule& other) {
@@ -42,6 +46,8 @@ public:
         this -> previousValue = other.previousValue;
         this -> conditions = other.conditions;
         this -> scope = other.scope;
+        std::random_device rd;
+        this -> mt = std::mt19937(rd());
         return *this;
     }
 
@@ -71,9 +77,7 @@ public:
     }
 
 private:
-    static long Random(long a) {
-        std::random_device rd;
-        std::mt19937 mt(static_cast<unsigned int>(time(nullptr)));
+    long Random(long a) {
         std::uniform_int_distribution<long> dist(0, a - 1);
         return dist(mt);
     }
