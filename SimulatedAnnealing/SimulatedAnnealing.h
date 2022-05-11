@@ -23,6 +23,7 @@ public:
     int iterationsWithoutImprovement;
 protected:
     double minError;
+    std::shared_ptr<Solution> wk1;
     double initialTemp;
     int numImprovement;
     int numIterations;

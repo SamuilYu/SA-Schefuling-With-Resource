@@ -27,6 +27,7 @@ double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution) {
     solution->Initialize();
     double error = solution->GetError();
     minError = error;
+    wk1 = solution->clone();
     Anneal(solution);
     return solution->GetError();
 }
@@ -35,8 +36,6 @@ double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
     double error = solution->GetError();
     double newError;
     int totalIterations = 0;
-
-    auto wk1 = solution->clone();
     double temperature, deltaError;
     while (true) {
         temperature = coolingSchedule->getNextTemperature();
@@ -53,7 +52,6 @@ double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
                 if (error < minError) {
                     (*solution) = (*wk1);
                     minError = error;
-                    std::cout << "Accepted better" << std::endl;
                 }
             } else {
                 wk1 -> SetPrevious();

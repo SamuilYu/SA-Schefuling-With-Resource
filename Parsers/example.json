@@ -16,8 +16,8 @@
     "Parallel": {
       "type": "prune",
       "parameters": {
-        "numImprovement": 20000,
-        "numPruning": 1000,
+        "numImprovement": 15000,
+        "numPruning": 2500,
         "numThreads": 6
       }
     }

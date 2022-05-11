@@ -10,7 +10,7 @@ class ParallelSA: public SimulatedAnnealing {
 protected:
     int numThreads;
     std::vector<std::thread> pool;
-    std::vector<SimulatedAnnealing> algorithms;
+    std::vector<std::shared_ptr<SimulatedAnnealing>> algorithms;
 
     virtual std::vector<std::shared_ptr<Solution>> prepareSolutions(std::shared_ptr<Solution> solution) {
         std::vector<std::shared_ptr<Solution>> solutions;
@@ -23,7 +23,7 @@ protected:
 
     virtual void run(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>>& solutions) {
         for (int i = 0; i < numThreads; i++) {
-            pool.emplace_back(&SimulatedAnnealing::Start, algorithms[i], solutions[i]);
+            pool.emplace_back(&SimulatedAnnealing::Start, std::ref(*(algorithms[i])), solutions[i]);
         }
         for (auto &th: pool) {
             th.join();
@@ -59,11 +59,13 @@ public:
         this->numThreads = numThreads;
         for (int i = 0; i < this->numThreads; i++) {
             algorithms.emplace_back(
+                std::make_shared<SimulatedAnnealing>(
                     schedule->clone(),
                     temperatureProvider->clone(),
                     acceptance->clone(),
                     numImprovement,
                     0
+                )
             );
         }
     }
@@ -103,7 +105,7 @@ public:
                                                          numImprovement, numThreads) {
         this -> numPruning = numPruning;
         for (auto& algorithm: algorithms) {
-            algorithm.numPruning = numPruning;
+            algorithm->numPruning = numPruning;
         }
     }
 protected:
@@ -126,18 +128,18 @@ protected:
 
             auto iter = solutions.begin();
             if ((iter = std::find(solutions.begin(), solutions.end(), best)) != solutions.end()) {
-                if (algorithms[iter - solutions.begin()].iterationsWithoutImprovement == numImprovement) {
+                if (algorithms[iter - solutions.begin()]->iterationsWithoutImprovement == numImprovement) {
                     withoutImprovement = best;
                 }
             }
 
             std::vector<std::shared_ptr<Solution>> newSolutions = {};
-            std::vector<SimulatedAnnealing> newAlgorithms = {};
+            std::vector<std::shared_ptr<SimulatedAnnealing>> newAlgorithms = {};
             for (int i = 0; i < solutions.size(); i++) {
                 auto anotherError = solutions[i]->GetError();
                 if ((anotherError - bestError)/bestError < 0.1) {
-                    if (algorithms[i].iterationsWithoutImprovement != numImprovement) {
-                        std::cout << algorithms[i].iterationsWithoutImprovement << std::endl;
+                    if (algorithms[i]->iterationsWithoutImprovement != numImprovement) {
+                        std::cout << algorithms[i]->iterationsWithoutImprovement << std::endl;
                         newSolutions.push_back(solutions[i]);
                         newAlgorithms.push_back(algorithms[i]);
                     }
@@ -146,11 +148,15 @@ protected:
             solutions = newSolutions;
             algorithms = newAlgorithms;
             if (solutions.empty()) {
+                solutions.push_back(best);
+                if (withoutImprovement != nullptr) {
+                    solutions.push_back(withoutImprovement);
+                }
                 break;
             }
             pool.clear();
             for (int i = 0; i < algorithms.size(); i++) {
-                pool.emplace_back(&SimulatedAnnealing::Anneal, algorithms[i], solutions[i]);
+                pool.emplace_back(&SimulatedAnnealing::Anneal, std::ref(*(algorithms[i])), solutions[i]);
             }
             for (auto &th: pool) {
                 th.join();

@@ -1,1 +1,0 @@
-{"SimulatedAnnealingParameters": {"CoolingSchedule": {"type": "hybrid"}, "AcceptanceDistribution": {"type": "metropolis"}, "InitialTemperatureProvider": {"type": "statistical", "parameters": {"numOfRuns": 1000, "threshold": 0.2}}, "Parallel": {"type": "no", "parameters": {"numIterations": 860}}}}
