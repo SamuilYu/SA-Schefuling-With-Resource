@@ -104,7 +104,8 @@ private:
         } else if (type == "prune") {
             auto numThreads = parameters.get<int>("numThreads");
             auto numPruning = parameters.get<int>("numPruning");
-            return std::make_shared<ParallelSAWithPruning>(cs, tp, ad, numImprovement, numPruning, numThreads);
+            auto pruneThreshold = parameters.get<double>("threshold");
+            return std::make_shared<ParallelSAWithPruning>(cs, tp, ad, numImprovement, numPruning, pruneThreshold, numThreads);
         }
         throw std::logic_error("Illegal argument for simulated annealing algorithm.");
     }

@@ -43,6 +43,8 @@ public:
         double result = 1.0;
         int count = N;
         double delta = 0.0;
+        int withoutImprovement = 0;
+        double max = 0.0;
         while (threshold > sum/count || count == 0) {
             sum = 0.0;
             count = 0;
@@ -56,6 +58,15 @@ public:
                 prevE = E;
             }
             result += delta;
+            if (sum/count > max + 0.02) {
+                max = sum/count;
+                withoutImprovement = 0;
+            } else {
+                withoutImprovement++;
+            }
+            if (withoutImprovement >= N/2) {
+                break;
+            }
         }
 
         return result;

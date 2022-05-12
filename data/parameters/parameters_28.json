@@ -1,1 +1,1 @@
-{"SimulatedAnnealingParameters": {"CoolingSchedule": {"type": "hybrid"}, "AcceptanceDistribution": {"type": "hastings"}, "InitialTemperatureProvider": {"type": "range"}, "Parallel": {"type": "no", "parameters": {"numImprovement": 5000}}}}
+{"SimulatedAnnealingParameters": {"CoolingSchedule": {"type": "hybrid"}, "AcceptanceDistribution": {"type": "hastings", "parameters": {"gamma": 3}}, "InitialTemperatureProvider": {"type": "range"}, "Parallel": {"type": "no", "parameters": {"numImprovement": 5000}}}}

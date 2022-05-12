@@ -101,11 +101,14 @@ public:
                           const std::shared_ptr<AcceptanceDistribution> &acceptance,
                           int numImprovement,
                           int numPruning,
+                          double pruneThreshold,
                           int numThreads) : DecompositionParallelSA(schedule, temperatureProvider, acceptance,
                                                          numImprovement, numThreads) {
         this -> numPruning = numPruning;
         for (auto& algorithm: algorithms) {
             algorithm->numPruning = numPruning;
+            algorithm->iterationsWithoutApproximation = numPruning;
+            algorithm->pruneThreshold = pruneThreshold;
         }
     }
 protected:
@@ -137,7 +140,7 @@ protected:
             std::vector<std::shared_ptr<SimulatedAnnealing>> newAlgorithms = {};
             for (int i = 0; i < solutions.size(); i++) {
                 auto anotherError = solutions[i]->GetError();
-                if ((anotherError - bestError)/bestError < 0.1) {
+                if ((anotherError - bestError)/bestError < pruneThreshold) {
                     if (algorithms[i]->iterationsWithoutImprovement != numImprovement) {
                         std::cout << algorithms[i]->iterationsWithoutImprovement << std::endl;
                         newSolutions.push_back(solutions[i]);

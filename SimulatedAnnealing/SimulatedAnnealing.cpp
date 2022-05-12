@@ -52,6 +52,11 @@ double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
                 if (error < minError) {
                     (*solution) = (*wk1);
                     minError = error;
+                    if (globalMinError != 0.0 && (minError - globalMinError)/globalMinError < 0.2) {
+                        iterationsWithoutApproximation = 0;
+                    } else if (globalMinError != 0.0) {
+                        iterationsWithoutApproximation++;
+                    }
                 }
             } else {
                 wk1 -> SetPrevious();
@@ -60,8 +65,14 @@ double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
             if (iterationsWithoutImprovement >= numImprovement || totalIterations == numPruning) {
                 break;
             }
+            if (iterationsWithoutApproximation >= numApproximation && globalMinError != 0.0) {
+                break;
+            }
         }
         if (iterationsWithoutImprovement >= numImprovement || totalIterations == numPruning) {
+            break;
+        }
+        if (iterationsWithoutApproximation >= numApproximation && globalMinError != 0.0) {
             break;
         }
     }

@@ -21,12 +21,16 @@ public:
 
     int numPruning;
     int iterationsWithoutImprovement;
+    int iterationsWithoutApproximation = 0;
+    double pruneThreshold;
 protected:
     double minError;
+    double globalMinError = 0.0;
     std::shared_ptr<Solution> wk1;
     double initialTemp;
     int numImprovement;
     int numIterations;
+    int numApproximation = 0;
     std::shared_ptr<CoolingSchedule> coolingSchedule;
     std::shared_ptr<TemperatureProvider> temperatureProvider;
     std:: shared_ptr<AcceptanceDistribution> acceptanceDist;
