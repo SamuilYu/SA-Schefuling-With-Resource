@@ -44,7 +44,7 @@ int main() {
     std::vector<int> hard = {66, 281,310,387,471,483};
     std::vector<int> medium = {67,143,142,250,280,480};
     std::vector<std::thread> pool;
-    for (int i = 5; i < 36; i++) {
+    for (int i = 0; i < 5; i++) {
         for (auto each: easy) {
             if (pool.size() < std::thread::hardware_concurrency()) {
                 pool.emplace_back(&collectMetrics, i, each);
@@ -57,7 +57,7 @@ int main() {
         }
         pool.clear();
     }
-    for (int i = 5; i < 36; i++) {
+    for (int i = 0; i < 5; i++) {
         for (auto each: medium) {
             if (pool.size() < std::thread::hardware_concurrency()) {
                 pool.emplace_back(&collectMetrics, i, each);
@@ -70,7 +70,7 @@ int main() {
         }
         pool.clear();
     }
-    for (int i = 5; i < 36; i++) {
+    for (int i = 0; i < 5; i++) {
         for (auto each: hard) {
             if (pool.size() < std::thread::hardware_concurrency()) {
                 pool.emplace_back(&collectMetrics, i, each);
