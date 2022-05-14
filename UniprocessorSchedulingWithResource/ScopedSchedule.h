@@ -205,8 +205,6 @@ private:
     std::vector<std::shared_ptr<ScopedSchedule>> breakUp(
         std::vector<std::shared_ptr<ScopedSchedule>> previous,
         std::set<std::pair<int, int>> allowedPairs,
-        const std::map<int, std::shared_ptr<std::set<int>>>& succ,
-        const std::map<int, std::shared_ptr<std::set<int>>>& pred,
         size_t numScopes
     ) {
         auto currentScopes = previous.size();
@@ -217,18 +215,12 @@ private:
             remainder = currentScopes;
         }
 
-        size_t minProduct = LONG_MAX;
-        std::pair<int, int> candidate;
-        for (auto& each: allowedPairs) {
-            size_t newProduct =
-                    succ.at(each.first)->size() * pred.at(each.second)->size() +
-                    succ.at(each.second)->size() * pred.at(each.first)->size();
-            if (newProduct < minProduct) {
-                minProduct = newProduct;
-                candidate = each;
-            }
-        }
+        auto it = allowedPairs.begin();
+        std::advance(it, Random(allowedPairs.size()));
+        std::pair<int, int> candidate = *(it);
 
+        std::vector<std::set<std::pair<int, int>>> leftAllowed = {};
+        std::vector<std::set<std::pair<int, int>>> rightAllowed = {};
         std::vector<std::shared_ptr<ScopedSchedule>> current = {};
         for (int i = 0; i < remainder; i++) {
             auto leftScopeGraph = previous[i]->scope.getDependencyGraph();
@@ -239,59 +231,77 @@ private:
             auto rightScope = SchedulingConditions(rightScopeGraph);
             current.push_back(std::make_shared<ScopedSchedule>(previous[i]->conditions, leftScope));
             current.push_back(std::make_shared<ScopedSchedule>(previous[i]->conditions, rightScope));
+            leftAllowed.push_back(buildAllowedPairsForScope(leftScope));
+            rightAllowed.push_back(buildAllowedPairsForScope(rightScope));
         }
         for (auto i = remainder; i < currentScopes; i++) {
             current.push_back(previous[i]);
         }
 
-        for (auto& pre: *(pred.at(candidate.first))) {
-            for (auto& suc: *(succ.at(candidate.second))) {
-                allowedPairs.erase(std::make_pair(pre, suc));
+        std::set<std::pair<int, int>> intersection = {};
+        for (auto& each: allowedPairs) {
+            bool allowed = true;
+            for (auto& left: leftAllowed) {
+                allowed = allowed && left.find(each) != left.end();
+            }
+            for (auto& right: rightAllowed) {
+                allowed = allowed && right.find(each) != right.end();
+            }
+            if (allowed) {
+                intersection.insert(each);
             }
         }
-        for (auto& pre: *(pred.at(candidate.second))) {
-            for (auto& suc: *(succ.at(candidate.first))) {
-                allowedPairs.erase(std::make_pair(pre, suc));
-            }
-        }
+        allowedPairs = intersection;
+
+//        for (auto& pre: *(pred.at(candidate.first))) {
+//            for (auto& suc: *(succ.at(candidate.second))) {
+//                allowedPairs.erase(std::make_pair(pre, suc));
+//                allowedPairs.erase(std::make_pair(suc, pre));
+//            }
+//        }
+//        for (auto& pre: *(pred.at(candidate.second))) {
+//            for (auto& suc: *(succ.at(candidate.first))) {
+//                allowedPairs.erase(std::make_pair(pre, suc));
+//                allowedPairs.erase(std::make_pair(suc, pre));
+//            }
+//        }
         if (remainder < currentScopes || allowedPairs.empty()) {
             return current;
         } else {
-            return breakUp(current, allowedPairs, succ, pred, numScopes);
+            return breakUp(current, allowedPairs, numScopes);
         }
     }
 
-protected:
-    std::vector<std::shared_ptr<Solution>> breakScope(int numScopes) override {
+    std::set<std::pair<int, int>> buildAllowedPairsForScope(SchedulingConditions& currScope) {
         DependencyGraph::vertex_iterator i, j, iend, jend;
-        std::set<std::pair<int, int>> pairs = {};
         std::map<int, std::shared_ptr<std::set<int>>> succ = {};
         std::map<int, std::shared_ptr<std::set<int>>> pred = {};
+        std::set<std::pair<int, int>> pairs = {};
 
         DependencyGraph reverseGraph;
-        for (boost::tie(i, iend) = boost::vertices(scope.getDependencyGraph()); i != iend; i++) {
+        for (boost::tie(i, iend) = boost::vertices(currScope.getDependencyGraph()); i != iend; i++) {
             boost::add_vertex(*i, reverseGraph);
         }
-        for (boost::tie(i, iend) = boost::vertices(scope.getDependencyGraph()); i != iend; i++) {
+        for (boost::tie(i, iend) = boost::vertices(currScope.getDependencyGraph()); i != iend; i++) {
             for (j = i; j != iend; j++) {
-                if (boost::edge(*i, *j, scope.getDependencyGraph()).second) {
+                if (boost::edge(*i, *j, currScope.getDependencyGraph()).second) {
                     boost::add_edge(*j, *i, reverseGraph);
-                } else if (boost::edge(*j, *i, scope.getDependencyGraph()).second) {
+                } else if (boost::edge(*j, *i, currScope.getDependencyGraph()).second) {
                     boost::add_edge(*i, *j, reverseGraph);
                 }
             }
         }
 
-        for (boost::tie(i, iend) = boost::vertices(scope.getDependencyGraph()); i != iend; i++) {
-            for (boost::tie(j, jend) = boost::vertices(scope.getDependencyGraph()); j != jend; j++) {
+        for (boost::tie(i, iend) = boost::vertices(currScope.getDependencyGraph()); i != iend; i++) {
+            for (boost::tie(j, jend) = boost::vertices(currScope.getDependencyGraph()); j != jend; j++) {
                 pairs.insert(std::make_pair(*i, *j));
             }
 
-            auto indexMap1 = boost::get(boost::vertex_index, scope.getDependencyGraph());
+            auto indexMap1 = boost::get(boost::vertex_index, currScope.getDependencyGraph());
             auto colorMap1 = boost::make_vector_property_map<boost::default_color_type>(indexMap1);
             succ[*i] = std::make_shared<std::set<int>>();
             auto vis1 = collector_visitor(succ[*i]);
-            boost::depth_first_visit(scope.getDependencyGraph(), *i, vis1, colorMap1);
+            boost::depth_first_visit(currScope.getDependencyGraph(), *i, vis1, colorMap1);
 
             auto indexMap2 = boost::get(boost::vertex_index, reverseGraph);
             auto colorMap2 = boost::make_vector_property_map<boost::default_color_type>(indexMap2);
@@ -306,8 +316,14 @@ protected:
                 pairs.erase(std::make_pair(each.first, v));
             }
         }
+        return  pairs;
+    }
 
-        auto schedules = breakUp({std::make_shared<ScopedSchedule>(*this)}, pairs, succ, pred, numScopes);
+protected:
+    std::vector<std::shared_ptr<Solution>> breakScope(int numScopes) override {
+        std::set<std::pair<int, int>> pairs = buildAllowedPairsForScope(scope);
+
+        auto schedules = breakUp({std::make_shared<ScopedSchedule>(*this)}, pairs, numScopes);
         std::vector<std::shared_ptr<Solution>> solutions;
         for (auto& each: schedules) {
             solutions.push_back(each);

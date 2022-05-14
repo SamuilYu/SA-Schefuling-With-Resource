@@ -13,7 +13,7 @@ protected:
     std::vector<std::shared_ptr<SimulatedAnnealing>> algorithms;
 
     virtual std::vector<std::shared_ptr<Solution>> prepareSolutions(std::shared_ptr<Solution> solution) {
-        std::vector<std::shared_ptr<Solution>> solutions;
+        std::vector<std::shared_ptr<Solution>> solutions = {};
         for (int i = 0; i < numThreads; i++) {
             auto current = solution->clone();
             solutions.push_back(current);
@@ -26,8 +26,11 @@ protected:
             pool.emplace_back(&SimulatedAnnealing::Start, std::ref(*(algorithms[i])), solutions[i]);
         }
         for (auto &th: pool) {
-            th.join();
+            if (th.joinable()) {
+                th.join();
+            }
         }
+        pool.clear();
     }
 
     virtual std::shared_ptr<Solution> chooseBest(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>> solutions) {
@@ -87,7 +90,12 @@ public:
                                                          numImprovement, numThreads) {}
 
     std::vector<std::shared_ptr<Solution>> prepareSolutions(std::shared_ptr<Solution> solution) override {
-        return solution->breakScope(numThreads);
+        auto solutions =  solution->breakScope(numThreads);
+        if (solutions.size()<numThreads) {
+            numThreads = solutions.size();
+        }
+        algorithms.resize(numThreads);
+        return solutions;
     }
 };
 
@@ -162,8 +170,11 @@ protected:
                 pool.emplace_back(&SimulatedAnnealing::Anneal, std::ref(*(algorithms[i])), solutions[i]);
             }
             for (auto &th: pool) {
-                th.join();
+                if (th.joinable()) {
+                    th.join();
+                }
             }
+            pool.clear();
         }
     }
 };

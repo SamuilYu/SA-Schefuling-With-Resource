@@ -24,6 +24,7 @@ double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution) {
     coolingSchedule -> setInitialTemperature(initialTemp);
     coolingSchedule -> restart();
     iterationsWithoutImprovement = 0;
+    iterationsWithoutApproximation = 0;
     solution->Initialize();
     double error = solution->GetError();
     minError = error;
@@ -52,7 +53,7 @@ double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
                 if (error < minError) {
                     (*solution) = (*wk1);
                     minError = error;
-                    if (globalMinError != 0.0 && (minError - globalMinError)/globalMinError < 0.2) {
+                    if (globalMinError != 0.0 && (minError - globalMinError)/globalMinError < pruneThreshold) {
                         iterationsWithoutApproximation = 0;
                     } else if (globalMinError != 0.0) {
                         iterationsWithoutApproximation++;
