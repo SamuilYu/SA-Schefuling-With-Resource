@@ -23,9 +23,9 @@ public:
     int iterationsWithoutImprovement;
     int iterationsWithoutApproximation = 0;
     double pruneThreshold;
+    double globalMinError = 0.0;
 protected:
     double minError;
-    double globalMinError = 0.0;
     std::shared_ptr<Solution> wk1;
     double initialTemp;
     int numImprovement;

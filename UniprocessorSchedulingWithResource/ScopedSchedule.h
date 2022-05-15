@@ -183,10 +183,10 @@ private:
             resultsUsed.emplace_back(resultsUsed[index]);
             resultsUsed[index + 1].insert(each);
             for (const auto& entry: adjacentUnvisited) {
-                adjacentUnvisited[entry.first].erase(each);
                 if (adjacentUnvisited[entry.first].empty()) {
                     resultsUsed[index + 1].erase(entry.first);
                 }
+                adjacentUnvisited[entry.first].erase(each);
             }
             index++;
         }

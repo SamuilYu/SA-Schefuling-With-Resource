@@ -17,6 +17,7 @@ SimulatedAnnealing::SimulatedAnnealing(
     this -> numPruning = numPruning;
     coolingSchedule = std::move(schedule);
     acceptanceDist = std::move(acceptance);
+    globalMinError = 0.0;
 }
 
 double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution) {

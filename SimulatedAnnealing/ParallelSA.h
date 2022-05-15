@@ -139,7 +139,7 @@ protected:
 
             auto iter = solutions.begin();
             if ((iter = std::find(solutions.begin(), solutions.end(), best)) != solutions.end()) {
-                if (algorithms[iter - solutions.begin()]->iterationsWithoutImprovement == numImprovement) {
+                if (algorithms[iter - solutions.begin()]->iterationsWithoutImprovement >= numImprovement) {
                     withoutImprovement = best;
                 }
             }
@@ -149,8 +149,9 @@ protected:
             for (int i = 0; i < solutions.size(); i++) {
                 auto anotherError = solutions[i]->GetError();
                 if ((anotherError - bestError)/bestError < pruneThreshold) {
-                    if (algorithms[i]->iterationsWithoutImprovement != numImprovement) {
-                        std::cout << algorithms[i]->iterationsWithoutImprovement << std::endl;
+                    if (algorithms[i]->iterationsWithoutImprovement < numImprovement) {
+                        algorithms[i]->globalMinError = bestError;
+//                        std::cout << algorithms[i]->iterationsWithoutImprovement << std::endl;
                         newSolutions.push_back(solutions[i]);
                         newAlgorithms.push_back(algorithms[i]);
                     }
