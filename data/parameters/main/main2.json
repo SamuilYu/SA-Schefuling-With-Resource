@@ -1,0 +1,1 @@
+{"SimulatedAnnealingParameters": {"CoolingSchedule": {"type": "hybrid"}, "AcceptanceDistribution": {"type": "barker"}, "InitialTemperatureProvider": {"type": "range"}, "Parallel": {"type": "prune", "parameters": {"numImprovement": 7500, "numThreads": 30, "numPrune": 8000, "threshold": 0.2}}}}

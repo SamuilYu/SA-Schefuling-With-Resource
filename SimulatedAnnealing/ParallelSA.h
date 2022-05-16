@@ -113,6 +113,7 @@ public:
                           int numThreads) : DecompositionParallelSA(schedule, temperatureProvider, acceptance,
                                                          numImprovement, numThreads) {
         this -> numPruning = numPruning;
+        this-> pruneThreshold = pruneThreshold;
         for (auto& algorithm: algorithms) {
             algorithm->numPruning = numPruning;
             algorithm->iterationsWithoutApproximation = numPruning;
@@ -124,6 +125,7 @@ protected:
     void run(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>>& solutions) override {
         std::shared_ptr<Solution> withoutImprovement = nullptr;
         ParallelSA::run(solution, solutions);
+        auto currentAlg = algorithms;
         double bestError;
         while (true) {
             std::vector<std::shared_ptr<Solution>> v(solutions);
@@ -137,9 +139,9 @@ protected:
                 withoutImprovement = nullptr;
             }
 
-            auto iter = solutions.begin();
-            if ((iter = std::find(solutions.begin(), solutions.end(), best)) != solutions.end()) {
-                if (algorithms[iter - solutions.begin()]->iterationsWithoutImprovement >= numImprovement) {
+            auto iter = std::find(solutions.begin(), solutions.end(), best);
+            if (iter != solutions.end()) {
+                if (currentAlg[iter - solutions.begin()]->iterationsWithoutImprovement >= numImprovement) {
                     withoutImprovement = best;
                 }
             }
@@ -149,16 +151,16 @@ protected:
             for (int i = 0; i < solutions.size(); i++) {
                 auto anotherError = solutions[i]->GetError();
                 if ((anotherError - bestError)/bestError < pruneThreshold) {
-                    if (algorithms[i]->iterationsWithoutImprovement < numImprovement) {
-                        algorithms[i]->globalMinError = bestError;
+                    if (currentAlg[i]->iterationsWithoutImprovement < numImprovement) {
+                        currentAlg[i]->globalMinError = bestError;
 //                        std::cout << algorithms[i]->iterationsWithoutImprovement << std::endl;
                         newSolutions.push_back(solutions[i]);
-                        newAlgorithms.push_back(algorithms[i]);
+                        newAlgorithms.push_back(currentAlg[i]);
                     }
                 }
             }
             solutions = newSolutions;
-            algorithms = newAlgorithms;
+            currentAlg = newAlgorithms;
             if (solutions.empty()) {
                 solutions.push_back(best);
                 if (withoutImprovement != nullptr) {
@@ -167,8 +169,8 @@ protected:
                 break;
             }
             pool.clear();
-            for (int i = 0; i < algorithms.size(); i++) {
-                pool.emplace_back(&SimulatedAnnealing::Anneal, std::ref(*(algorithms[i])), solutions[i]);
+            for (int i = 0; i < currentAlg.size(); i++) {
+                pool.emplace_back(&SimulatedAnnealing::Anneal, std::ref(*(currentAlg[i])), solutions[i]);
             }
             for (auto &th: pool) {
                 if (th.joinable()) {

@@ -103,7 +103,7 @@ private:
             return std::make_shared<DecompositionParallelSA>(cs,tp,ad,numImprovement,numThreads);
         } else if (type == "prune") {
             auto numThreads = parameters.get<int>("numThreads");
-            auto numPruning = parameters.get<int>("numPruning");
+            auto numPruning = parameters.get<int>("numPrune");
             auto pruneThreshold = parameters.get<double>("threshold");
             return std::make_shared<ParallelSAWithPruning>(cs, tp, ad, numImprovement, numPruning, pruneThreshold, numThreads);
         }
