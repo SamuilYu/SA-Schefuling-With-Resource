@@ -6,9 +6,9 @@
 
 void collectMetrics(int i, int j) {
     std::ostringstream dag;
-    dag << "C:\\Users\\samyu\\CLionProjects\\SA-Schefuling-With-Resource/data/trees/tree" << j <<".txt";
+    dag << "C:\\Users\\samyu\\CLionProjects\\SA-Schefuling-With-Resource/data/trees/tree_" << j <<".txt";
     std::ostringstream opt_name;
-    opt_name << "C:\\Users\\samyu\\CLionProjects\\SA-Schefuling-With-Resource/data/trees/opt" << j <<".txt";
+    opt_name << "C:\\Users\\samyu\\CLionProjects\\SA-Schefuling-With-Resource/data/trees/opt_" << j <<".txt";
     double opt = 0.0;
     std::ifstream opt_file;
     opt_file.open(opt_name.str());
@@ -18,13 +18,13 @@ void collectMetrics(int i, int j) {
     auto cond = std::make_shared<SchedulingConditions>(*dp);
     std::shared_ptr<Solution> probe = std::make_shared<Schedule>(*cond);
     std::ostringstream par;
-    par << "C:\\Users\\samyu\\CLionProjects\\SA-Schefuling-With-Resource/data/parameters/main/main"<< i << ".json";
+    par << "C:\\Users\\samyu\\CLionProjects\\SA-Schefuling-With-Resource/data/parameters/main/main_"<< i << ".json";
     auto sa = ParametersParser().parse(par.str(), cond, probe);
     auto maxMilli = 0L;
     auto maxAnswer = 0.0;
     auto minMilli = LONG_MAX;
     auto minAnswer = std::numeric_limits<double>::max();
-    std::vector<double> opt_vec = [];
+    std::vector<double> opt_vec = {};
     for (int k=0; k < 5; k++) {
         auto schedule = std::make_shared<Schedule>(*cond);
         auto begin = std::chrono::steady_clock::now();
@@ -60,7 +60,7 @@ int main() {
 //    std::vector<int> hardest = {68, 437, 448, 8, 310, 424, 230};
     std::vector<int> easy = {3, 7, 8, 5, 4, 1, 0, 6, 2, 9, 13, 17};
     std::vector<int> hard = {14, 11, 18, 15, 12, 10 ,19, 16};
-    std::vector<int> medium = {24, 27, 25, 20, 21, 28, 22, 26, 23, 29};
+    std::vector<int> medium = {28, 22, 26, 23, 29};
 
     std::vector<std::thread> pool;
 //    for (int i = 0; i < 3; i++) {
@@ -83,27 +83,27 @@ int main() {
 //        }
 //
 //    }
-    for (int i = 0; i < 3; i++) {
-        if (i==0) {
-            for (auto each: easy) {
-                pool.emplace_back(&collectMetrics, i, each);
-//            collectMetrics(i, each);
-            }
-            for (auto& th: pool) {
-                if (th.joinable()) {
-                    th.join();
-                }
-            }
-            pool.clear();
-        } else if (i>=1) {
-            for (auto each: easy) {
+//    for (int i = 0; i < 3; i++) {
+//        if (i==0) {
+//            for (auto each: easy) {
 //                pool.emplace_back(&collectMetrics, i, each);
-                collectMetrics(i, each);
-            }
-        }
-
-    }
-    for (int i = 0; i < 3; i++) {
+////            collectMetrics(i, each);
+//            }
+//            for (auto& th: pool) {
+//                if (th.joinable()) {
+//                    th.join();
+//                }
+//            }
+//            pool.clear();
+//        } else if (i>=1) {
+//            for (auto each: easy) {
+////                pool.emplace_back(&collectMetrics, i, each);
+//                collectMetrics(i, each);
+//            }
+//        }
+//
+//    }
+    for (int i = 2; i < 3; i++) {
         if (i == 0) {
             for (auto each: medium) {
                 pool.emplace_back(&collectMetrics, i, each);

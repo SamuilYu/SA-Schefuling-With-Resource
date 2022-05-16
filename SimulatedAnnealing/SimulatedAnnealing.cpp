@@ -27,6 +27,9 @@ double SimulatedAnnealing::Start(std::shared_ptr<Solution> solution) {
     iterationsWithoutImprovement = 0;
     iterationsWithoutApproximation = 0;
     solution->Initialize();
+    for (int j = 0; j < 4000; j++) {
+        solution ->Perturb(initialTemp, initialTemp);
+    }
     double error = solution->GetError();
     minError = error;
     wk1 = solution->clone();
