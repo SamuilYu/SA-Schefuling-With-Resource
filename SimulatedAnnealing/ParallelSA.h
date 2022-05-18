@@ -116,18 +116,22 @@ public:
         this-> pruneThreshold = pruneThreshold;
         for (auto& algorithm: algorithms) {
             algorithm->numPruning = numPruning;
-            algorithm->iterationsWithoutApproximation = numPruning;
+            algorithm->numApproximation = numPruning;
             algorithm->pruneThreshold = pruneThreshold;
         }
     }
 protected:
 
     void run(std::shared_ptr<Solution> solution, std::vector<std::shared_ptr<Solution>>& solutions) override {
+        for (int i = 0; i < algorithms.size(); i++) {
+            algorithms[i]->numScope = i;
+        }
         std::shared_ptr<Solution> withoutImprovement = nullptr;
         ParallelSA::run(solution, solutions);
         auto currentAlg = algorithms;
-        double bestError;
+        double bestError = 0.0;
         while (true) {
+
             std::vector<std::shared_ptr<Solution>> v(solutions);
             if (withoutImprovement != nullptr) {
                 v.push_back(withoutImprovement);
@@ -156,8 +160,16 @@ protected:
 //                        std::cout << algorithms[i]->iterationsWithoutImprovement << std::endl;
                         newSolutions.push_back(solutions[i]);
                         newAlgorithms.push_back(currentAlg[i]);
+                    } else {
+//                        std::cout << "Scope " << currentAlg[i]->numScope << " died without improvement. F=" << solutions[i]-> GetError() << " Best_F=" << bestError << std::endl;
                     }
+                } else {
+//                    std::cout << "Scope " << currentAlg[i]->numScope << " died by pruning. F=" << solutions[i] -> GetError()  << " Best_F=" << bestError << std::endl;
                 }
+            }
+
+            if (algorithms.size() == 1) {
+                std::cout << "Last scope " << algorithms[0] -> numScope << ". F=" << solutions[0] << std::endl;
             }
             solutions = newSolutions;
             currentAlg = newAlgorithms;

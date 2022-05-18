@@ -78,6 +78,7 @@ double SimulatedAnnealing::Anneal(std::shared_ptr<Solution> solution) {
             break;
         }
         if (iterationsWithoutApproximation >= numApproximation && globalMinError != 0.0) {
+//            std::cout << "Scope " << this->numScope << " died by pruning inside. F=" << solution -> GetError() << std::endl;
             break;
         }
     }

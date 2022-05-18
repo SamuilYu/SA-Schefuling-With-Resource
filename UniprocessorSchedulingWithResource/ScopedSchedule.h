@@ -216,7 +216,7 @@ private:
         }
 
         auto it = allowedPairs.begin();
-        std::advance(it, Random(allowedPairs.size()));
+//        std::advance(it, Random(allowedPairs.size()));
         std::pair<int, int> candidate = *(it);
 
         std::vector<std::set<std::pair<int, int>>> leftAllowed = {};
